@@ -42,5 +42,6 @@ fi
 echo "Booting kernel: ${bzImage}"
 
 ${qemu} -m 512m -kernel ${bzImage} -nographic \
-	-append "root=/dev/sda ro init=/lib/systemd/systemd console=ttyS0" \
-	-hda rootfs.img
+	-append "root=/dev/sda rw init=/lib/systemd/systemd console=ttyS0" \
+	-hda rootfs.img \
+	-enable-kvm
