@@ -1,0 +1,5 @@
+rootfs.img
+initramfs.cpio.gz
+vmlinuz
+initrd/
+rootfs/
