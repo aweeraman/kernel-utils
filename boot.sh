@@ -60,6 +60,12 @@ if test "${copy_modules_to_rootfs}x" = "yx"; then
       sudo make -j${procs} modules
       sudo make INSTALL_MOD_PATH=${rootfs} modules_install
     )
+    (
+      cd ${samplesdir}
+      KERNEL_PATH=${srcdir}/${kernel} make clean
+      KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make all
+      sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
+    )
   fi
 
   sync

@@ -7,6 +7,7 @@ initrd=${basedir}/initrd
 srcdir=${basedir}/src
 rootfs=${basedir}/rootfs
 depsdir=${basedir}/deps
+samplesdir=${basedir}/samples
 busyboxdir=${depsdir}/busybox
 
 hostname=wintermute
@@ -15,6 +16,7 @@ memory=512m
 
 # Option to compile and copy kernel modules to rootfs
 copy_modules_to_rootfs=y
+copy_samples_to_rootfs=y
 
 debootstrap_arch=amd64
 qemu_arch=x86_64

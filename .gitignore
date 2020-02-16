@@ -6,3 +6,4 @@ rootfs/
 deps/
 src/
 log
+*.o

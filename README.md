@@ -39,6 +39,7 @@ initrd=${basedir}/initrd
 srcdir=${basedir}/src
 rootfs=${basedir}/rootfs
 depsdir=${basedir}/deps
+samplesdir=${basedir}/samples
 busyboxdir=${depsdir}/busybox
 
 # Rootfs and VM configuration
@@ -48,6 +49,7 @@ memory=512
 
 # Option to compile and copy kernel modules to rootfs
 copy_modules_to_rootfs=y
+copy_samples_to_rootfs=y
 
 # Build and runtime architectures
 debootstrap_arch=amd64
