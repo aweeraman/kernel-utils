@@ -82,6 +82,6 @@ if test "${wait_for_gdb_at_boot}y" = "yy"; then
 fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} -nographic \
-	-append "root=/dev/sda rw init=/lib/systemd/systemd console=ttyS0" \
+	-append "root=/dev/sda rw init=/lib/systemd/systemd console=ttyS0 nokaslr" \
 	-hda rootfs.img \
 	-enable-kvm ${debug_args}
