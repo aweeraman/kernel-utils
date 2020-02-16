@@ -1,5 +1,7 @@
+# Number of processor threads
 procs=$(nproc)
 
+# Directory locations
 confdir=${basedir}/config
 initrd=${basedir}/initrd
 srcdir=${basedir}/src
@@ -9,6 +11,9 @@ busyboxdir=${depsdir}/busybox
 
 hostname=wintermute
 rootfs_size=512m
+memory=512m
+
+# Option to compile and copy kernel modules to rootfs
 copy_modules_to_rootfs=y
 
 debootstrap_arch=amd64
