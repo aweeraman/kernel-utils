@@ -4,6 +4,7 @@ set -e
 
 basedir=$(dirname $(readlink -f $0))
 rootfs=${basedir}/rootfs
+confdir=${basedir}/config
 hostname=wintermute
 rootfs_size=512m
 
@@ -31,9 +32,16 @@ sudo bash -c "echo '${hostname}' > ${rootfs}/etc/hostname"
 echo "ok"
 
 echo "Set the root password... "
-sudo chroot ${rootfs} /bin/bash -c "passwd root"
+sudo bash -c "chroot ${rootfs} passwd root"
+
+echo "Enabling networking... "
+sudo cp ${confdir}/dhcp.network ${rootfs}/etc/systemd/network/
+sudo bash -c "chroot ${rootfs} systemctl enable systemd-networkd.service"
+sudo bash -c "chroot ${rootfs} systemctl enable systemd-resolved.service"
 
 echo -n "Cleaning up... "
+sync
+sleep 5
 sudo umount ${rootfs}
 sudo rmdir ${rootfs}
 echo "ok"
