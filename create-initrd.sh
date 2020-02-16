@@ -1,35 +1,42 @@
 #!/bin/sh
 
-BASEDIR=$(dirname $(readlink -f $0))
-PROCS=$(nproc)
-CONFDIR=${BASEDIR}/config
-INITRD=${BASEDIR}/initrd
-ROOTFS=${BASEDIR}/rootfs
-DEPSDIR=${BASEDIR}/deps
-BUSYBOXDIR=${DEPSDIR}/busybox
+set -e
 
-echo initrd_fs
-if [ ! -e ${INITRD} ]; then
-  mkdir ${INITRD}
-  cd ${INITRD}
-  mkdir -p bin sbin etc proc sys usr/bin usr/sbin
-  cd -
-  cp ${CONFDIR}/init ${INITRD}/bin/init
+basedir=$(dirname $(readlink -f $0))
+procs=$(nproc)
+confdir=${basedir}/config
+initrd=${basedir}/initrd
+depsdir=${basedir}/deps
+busyboxdir=${depsdir}/busybox
+
+echo -n "Creating initrd filesystem... "
+if [ ! -e ${initrd} ]; then
+  (
+    mkdir ${initrd} && cd ${initrd}
+    mkdir -p bin sbin etc proc sys usr/bin usr/sbin
+  )
+  cp ${confdir}/initrd_init ${initrd}/bin/init
 fi
+echo "ok"
 
-echo busybox
-if [ ! -e ${BUSYBOXDIR} ]; then
-  mkdir -p ${BUSYBOXDIR}
-  cd ${DEPSDIR}
-  git clone git@github.com:mirror/busybox.git
+echo "Building dependencies... "
+if [ ! -e ${busyboxdir} ]; then
+  mkdir -p ${busyboxdir}
+  (
+    cd ${depsdir}
+    git clone git@github.com:mirror/busybox.git >> ${basedir}/log
+  )
 fi
-cp ${CONFDIR}/busybox.config ${BUSYBOXDIR}/.config
-cd ${BUSYBOXDIR}
-make -j${PROCS}
-make CONFIG_PREFIX=${INITRD} install
-cd -
+cp ${confdir}/busybox.config ${busyboxdir}/.config
+(
+  cd ${busyboxdir}
+  make -j${procs} >> ${basedir}/log 2>&1
+  make CONFIG_PREFIX=${initrd} install >> ${basedir}/log 2>&1
+)
 
-echo initrd
-cd ${INITRD}
-find . -print0 | cpio --null -ov --format=newc | gzip -9 > ${BASEDIR}/initramfs.cpio.gz
-cd -
+echo -n "Building initrd... "
+(
+  cd ${initrd}
+  $(find . -print0 | cpio --null -o --format=newc | \
+	  gzip -9 > ${basedir}/initramfs.cpio.gz) 2>> ${basedir}/log
+)

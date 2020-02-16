@@ -1,26 +1,36 @@
 #!/bin/sh
 
-BASEDIR=$(dirname $(readlink -f $0))
-PROCS=$(nproc)
-CONFDIR=${BASEDIR}/config
-INITRD=${BASEDIR}/initrd
-ROOTFS=${BASEDIR}/rootfs
-DEPSDIR=${BASEDIR}/deps
-BUSYBOXDIR=${DEPSDIR}/busybox
+set -e
 
-echo rootfs
-qemu-img create ${BASEDIR}/rootfs.img 1024m
-mkfs.ext4 ${BASEDIR}/rootfs.img
-echo "removing existing ${ROOTFS}, press enter to proceed"
+basedir=$(dirname $(readlink -f $0))
+rootfs=${basedir}/rootfs
+hostname=wintermute
+
+echo -n "Creating rootfs... "
+qemu-img create ${basedir}/rootfs.img 1024m >> ${basedir}/log
+mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
+
+echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
 read input
-sudo rmdir ${ROOTFS} || true
-sudo mkdir ${ROOTFS}
-echo "mounting ${ROOTFS} on loopback"
-sudo mount -o loop ${BASEDIR}/rootfs.img ${ROOTFS}
-echo "debootstrapping"
-sudo debootstrap unstable ${ROOTFS} http://deb.debian.org/debian/
-echo "setting root password"
-sudo chroot ${ROOTFS} /bin/bash -c "passwd root"
-echo "unmounting from loopback"
-sudo umount ${ROOTFS}
-sudo rmdir ${ROOTFS} || true
+$(sudo rmdir ${rootfs} || true) >> ${basedir}/log 2>&1
+sudo mkdir ${rootfs}
+
+echo -n "Mounting ${rootfs} on loopback... "
+sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
+echo "ok"
+
+echo -n "Bootstrapping filesystem... "
+$(sudo debootstrap unstable ${rootfs} http://deb.debian.org/debian/ >> ${basedir}/log)
+echo "ok"
+
+echo -n "Setting hostname: ${hostname}... "
+sudo bash -c "echo '${hostname}' > ${rootfs}/etc/hostname"
+echo "ok"
+
+echo "Set the root password... "
+sudo chroot ${rootfs} /bin/bash -c "passwd root"
+
+echo -n "Cleaning up... "
+sudo umount ${rootfs}
+sudo rmdir ${rootfs} || true
+echo "ok"
