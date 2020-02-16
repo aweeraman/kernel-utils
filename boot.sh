@@ -65,7 +65,6 @@ if test "${copy_modules_to_rootfs}x" = "yx"; then
       KERNEL_PATH=${srcdir}/${kernel} make clean
       KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make all
       sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
-      KERNEL_PATH=${srcdir}/${kernel} make clean
     )
   fi
 
