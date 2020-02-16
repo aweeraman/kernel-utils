@@ -4,11 +4,10 @@ set -e
 
 kernel=$1
 
-procs=$(nproc)
 basedir=$(dirname $(readlink -f $0))
-srcdir=${basedir}/src
-arch=x86_64
-qemu=qemu-system-x86_64
+. ${basedir}/config/env.sh
+
+qemu=qemu-system-${qemu_arch}
 
 if test ! -d ${srcdir}; then
   echo "Please copy kernel sources into ${srcdir}."
@@ -33,7 +32,7 @@ if test ! -e "${srcdir}/${kernel}"; then
   exit 1
 fi
 
-bzImage=${srcdir}/${kernel}/arch/${arch}/boot/bzImage
+bzImage=${srcdir}/${kernel}/arch/${kernel_arch}/boot/bzImage
 
 if test ! -e ${bzImage}; then
   echo "${bzImage} not found, building kernel... "
@@ -43,11 +42,29 @@ if test ! -e ${bzImage}; then
   )
 fi
 
-echo -n "Install kernel modules (y/N)? "
-read modules
+if test "${copy_modules_to_rootfs}x" = "yx"; then
+  if [ ! -e ${rootfs} ]; then
+    sudo mkdir ${rootfs}
+  fi
 
-if test "${modules}x" = "yx"; then
-  ${basedir}/create-rootfs.sh ${kernel} | tee -a ${basedir}/log
+  echo "Mounting ${rootfs} on loopback... "
+  sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
+
+  if test ! -z "${kernel}"; then
+    if test ! -d ${srcdir}/${kernel}; then
+      echo "Copy the build the kernel sources in src/"
+      exit 1
+    fi
+    (
+      cd ${srcdir}/${kernel}
+      sudo make -j${procs} modules
+      sudo make INSTALL_MOD_PATH=${rootfs} modules_install
+    )
+  fi
+
+  sync
+  sudo umount ${rootfs}
+  sudo rmdir ${rootfs}
 fi
 
 echo "Booting kernel: ${bzImage}"

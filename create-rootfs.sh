@@ -2,21 +2,15 @@
 
 set -e
 
-kernel=$1
 basedir=$(dirname $(readlink -f $0))
-procs=$(nproc)
-srcdir=${basedir}/src
-rootfs=${basedir}/rootfs
-confdir=${basedir}/config
-hostname=wintermute
-rootfs_size=512m
+. ${basedir}/config/env.sh
+
+echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
+read input
 
 echo -n "Creating rootfs... "
 qemu-img create ${basedir}/rootfs.img ${rootfs_size} >> ${basedir}/log
 mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
-
-echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
-read input
 
 if [ ! -e ${rootfs} ]; then
   sudo mkdir ${rootfs}
@@ -41,17 +35,6 @@ echo "Enabling networking... "
 sudo cp ${confdir}/dhcp.network ${rootfs}/etc/systemd/network/
 sudo bash -c "chroot ${rootfs} systemctl enable systemd-networkd.service"
 sudo bash -c "chroot ${rootfs} systemctl enable systemd-resolved.service"
-
-if test ! -z "${kernel}"; then
-  if test ! -d ${srcdir}/${kernel}; then
-    echo "Copy the build the kernel sources in src/"
-    exit 1
-  fi
-  (
-    cd ${srcdir}/${kernel}
-    sudo make INSTALL_MOD_PATH=${rootfs} -j${procs} modules modules_install
-  )
-fi
 
 echo -n "Cleaning up... "
 sync

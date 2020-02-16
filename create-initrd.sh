@@ -2,14 +2,8 @@
 
 set -e
 
-kernel=$1
-
 basedir=$(dirname $(readlink -f $0))
-procs=$(nproc)
-confdir=${basedir}/config
-initrd=${basedir}/initrd
-depsdir=${basedir}/deps
-busyboxdir=${depsdir}/busybox
+. ${basedir}/config/env.sh
 
 echo -n "Creating initrd filesystem... "
 if [ ! -e ${initrd} ]; then
