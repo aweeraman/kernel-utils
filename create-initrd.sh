@@ -2,6 +2,8 @@
 
 set -e
 
+kernel=$1
+
 basedir=$(dirname $(readlink -f $0))
 procs=$(nproc)
 confdir=${basedir}/config

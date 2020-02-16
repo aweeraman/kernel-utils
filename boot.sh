@@ -4,6 +4,7 @@ set -e
 
 kernel=$1
 
+procs=$(nproc)
 basedir=$(dirname $(readlink -f $0))
 srcdir=${basedir}/src
 arch=x86_64
@@ -35,8 +36,18 @@ fi
 bzImage=${srcdir}/${kernel}/arch/${arch}/boot/bzImage
 
 if test ! -e ${bzImage}; then
-  echo "${bzImage} not found, build the kernel first!"
-  exit 1
+  echo "${bzImage} not found, building kernel... "
+  (
+    cd ${srcdir}/${kernel}
+    time make -j${procs}
+  )
+fi
+
+echo -n "Install kernel modules (y/N)? "
+read modules
+
+if test "${modules}x" = "yx"; then
+  ${basedir}/create-rootfs.sh ${kernel} | tee -a ${basedir}/log
 fi
 
 echo "Booting kernel: ${bzImage}"
