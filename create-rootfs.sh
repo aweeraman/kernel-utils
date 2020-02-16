@@ -12,7 +12,7 @@ mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
 
 echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
 read input
-$(sudo rmdir ${rootfs} || true) >> ${basedir}/log 2>&1
+sudo rmdir ${rootfs} || true >> ${basedir}/log 2>&1
 sudo mkdir ${rootfs}
 
 echo -n "Mounting ${rootfs} on loopback... "
