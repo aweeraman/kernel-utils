@@ -65,16 +65,29 @@ qemu_debug_args="-s -S"
 
 Set 'wait_for_gdb_at_boot=y' and at the gdb prompt, and run './boot.sh [kernel]'.
 Qemu will wait for the debugger in order to proceed. From a different shell, start
-gdb and enter the following to continue booting and debugging:
+'gdb ./vmlinux' and enter the following to continue booting and debugging. Also,
+confirm that 'CONFIG_DEBUG_INFO=y' is set in the kernel config.
+
+Here's a sample session:
 
 ```
 (gdb) target remote :1234
 Remote debugging using :1234
-warning: No executable has been specified and target does not support
-determining executable automatically.  Try using the "file" command.
 
 Program received signal SIGTRAP, Trace/breakpoint trap.
-0x000000000000fff0 in ?? ()
-(gdb) continue
+0x000000000000fff0 in exception_stacks ()
+(gdb) hbreak start_kernel
+Hardware assisted breakpoint 1 at 0xffffffff829e2cb5: file init/main.c, line 780.
+(gdb) c
 Continuing.
+
+Breakpoint 1, start_kernel () at init/main.c:780
+780	{
+(gdb) n
+784		set_task_stack_end_magic(&init_task);
+(gdb) n
+785		smp_setup_processor_id();
+(gdb) n
+788		cgroup_init_early();
+
 ```
