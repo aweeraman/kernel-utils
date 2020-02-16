@@ -61,7 +61,9 @@ qemu_debug_args="-s -S"
 
 # Debugging
 
-Set 'wait_for_gdb_at_boot=y' and at the gdb prompt:
+Set 'wait_for_gdb_at_boot=y' and at the gdb prompt, and run './boot.sh [kernel]'.
+Qemu will wait for the debugger in order to proceed. From a different shell, start
+gdb and enter the following to continue booting and debugging:
 
 ```
 (gdb) target remote :1234
