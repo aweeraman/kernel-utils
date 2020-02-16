@@ -12,8 +12,10 @@ mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
 
 echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
 read input
-sudo rmdir ${rootfs} || true >> ${basedir}/log 2>&1
-sudo mkdir ${rootfs}
+
+if [ ! -e ${rootfs} ]; then
+  sudo mkdir ${rootfs}
+fi
 
 echo -n "Mounting ${rootfs} on loopback... "
 sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
@@ -32,5 +34,5 @@ sudo chroot ${rootfs} /bin/bash -c "passwd root"
 
 echo -n "Cleaning up... "
 sudo umount ${rootfs}
-sudo rmdir ${rootfs} || true
+sudo rmdir ${rootfs}
 echo "ok"
