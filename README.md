@@ -2,12 +2,12 @@
 
 This is a set of scripts and utilities to ease kernel development and testing in qemu.
 
-## Creates an initrd image
+## Create an initrd image
 ```
 $ ./create-initrd.sh
 ```
 
-# Creates a debootstrapped file system
+# Create a debootstrapped file system
 ```
 $ ./create-rootfs.sh
 ```
