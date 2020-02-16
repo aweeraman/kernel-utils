@@ -3,3 +3,6 @@ initramfs.cpio.gz
 vmlinuz
 initrd/
 rootfs/
+deps/
+src/
+log

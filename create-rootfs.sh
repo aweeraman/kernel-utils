@@ -5,9 +5,10 @@ set -e
 basedir=$(dirname $(readlink -f $0))
 rootfs=${basedir}/rootfs
 hostname=wintermute
+rootfs_size=512m
 
 echo -n "Creating rootfs... "
-qemu-img create ${basedir}/rootfs.img 1024m >> ${basedir}/log
+qemu-img create ${basedir}/rootfs.img ${rootfs_size} >> ${basedir}/log
 mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
 
 echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
