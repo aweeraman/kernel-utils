@@ -19,3 +19,7 @@ copy_modules_to_rootfs=y
 debootstrap_arch=amd64
 qemu_arch=x86_64
 kernel_arch=x86_64
+
+# Set this to yes to stop the CPU at boot and wait for debugger
+wait_for_gdb_at_boot=n
+qemu_debug_args="-s -S"

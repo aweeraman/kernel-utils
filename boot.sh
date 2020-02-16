@@ -69,7 +69,12 @@ fi
 
 echo "Booting kernel: ${bzImage}"
 
+debug_args=""
+if test "${wait_for_gdb_at_boot}y" = "yy"; then
+  debug_args=${qemu_debug_args}
+fi
+
 ${qemu} -m ${memory} -kernel ${bzImage} -nographic \
 	-append "root=/dev/sda rw init=/lib/systemd/systemd console=ttyS0" \
 	-hda rootfs.img \
-	-enable-kvm
+	-enable-kvm ${debug_args}
