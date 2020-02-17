@@ -5,13 +5,17 @@ set -e
 basedir=$(dirname $(readlink -f $0))
 . ${basedir}/config/env.sh
 
-echo -n "Creating initrd filesystem... "
-if [ ! -e ${initrd} ]; then
-  (
-    mkdir ${initrd} && cd ${initrd}
-    mkdir -p bin sbin etc proc sys usr/bin usr/sbin
-  )
+if [ -e ${initrd} ]; then
+  echo -n "Removing existing initrd, press ENTER to proceed... "
+  read input
+  rm -rf ${initrd}
 fi
+
+echo -n "Creating initrd filesystem... "
+mkdir ${initrd} && cd ${initrd}
+mkdir -p bin sbin etc proc sys usr/bin usr/sbin
+cp ${confdir}/init ${initrd}/init
+chmod a+x ${initrd}/init
 echo "ok"
 
 echo "Building dependencies... "
@@ -32,6 +36,5 @@ cp ${confdir}/busybox.config ${busyboxdir}/.config
 echo -n "Building initrd... "
 (
   cd ${initrd}
-  $(find . -print0 | cpio --null -o --format=newc | \
-	  gzip -9 > ${basedir}/initramfs.cpio.gz) 2>> ${basedir}/log
+  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz) 2>> ${basedir}/log
 )
