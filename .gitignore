@@ -7,3 +7,9 @@ deps/
 src/
 log
 *.o
+*.cmd
+*.ko
+*.mod.c
+*.mod
+*.order
+*.symvers

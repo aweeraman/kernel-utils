@@ -11,7 +11,6 @@ if [ ! -e ${initrd} ]; then
     mkdir ${initrd} && cd ${initrd}
     mkdir -p bin sbin etc proc sys usr/bin usr/sbin
   )
-  cp ${confdir}/initrd_init ${initrd}/bin/init
 fi
 echo "ok"
 
