@@ -94,3 +94,17 @@ Breakpoint 1, start_kernel () at init/main.c:780
 788		cgroup_init_early();
 
 ```
+
+## GDB Cheatsheet
+
+gdb ./vmlinux, file ./vmlinux
+gdb -tui, tui enable - enable text-user-interface mode
+c-x s - switch to SingleKey mode
+c-x 1 - same as "layout src"
+c-x 2 - same as "layout regs"
+c-x 0 - switch focus
+c - continue
+n - next
+i - step in
+disassemble _do_fork, disassemble 0xffffffff81064de0 - the location taken from System.map
+hbreak start_kernel, break _do_fork - set breakpoint
