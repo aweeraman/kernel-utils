@@ -1,3 +1,5 @@
+compiler_flags="CC=clang HOSTCC=clang"
+
 # Number of processor threads
 procs=$(nproc)
 
@@ -11,7 +13,7 @@ samplesdir=${basedir}/samples
 busyboxdir=${depsdir}/busybox
 
 hostname=wintermute
-rootfs_size=512m
+rootfs_size=1024m
 memory=512m
 
 # Option to compile and copy kernel modules to rootfs
@@ -28,3 +30,6 @@ boot_into_initrd_shell=n
 # Set this to yes to stop the CPU at boot and wait for debugger
 wait_for_gdb_at_boot=n
 qemu_debug_args="-s -S"
+
+# Packages to install on rootfs
+packages_to_install="bpftrace bpfcc-tools"

@@ -38,7 +38,7 @@ if test ! -e ${bzImage}; then
   echo "${bzImage} not found, building kernel... "
   (
     cd ${srcdir}/${kernel}
-    time make -j${procs}
+    time make ${compiler_flags} -j${procs}
   )
 fi
 

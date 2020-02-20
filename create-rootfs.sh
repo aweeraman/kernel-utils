@@ -36,6 +36,12 @@ sudo cp ${confdir}/dhcp.network ${rootfs}/etc/systemd/network/
 sudo bash -c "chroot ${rootfs} systemctl enable systemd-networkd.service"
 sudo bash -c "chroot ${rootfs} systemctl enable systemd-resolved.service"
 
+if test ! -z "${packages_to_install}"; then
+  echo "Installing additional packages... "
+  sudo bash -c "chroot ${rootfs} apt-get update"
+  sudo bash -c "chroot ${rootfs} apt-get install -y ${packages_to_install}"
+fi
+
 echo -n "Cleaning up... "
 sync
 sleep 5
