@@ -33,6 +33,7 @@ if test ! -e "${srcdir}/${kernel}"; then
 fi
 
 bzImage=${srcdir}/${kernel}/arch/${kernel_arch}/boot/bzImage
+vmlinux=${srcdir}/${kernel}/vmlinux
 
 if test ! -e ${bzImage}; then
   echo "${bzImage} not found, building kernel... "
@@ -42,14 +43,17 @@ if test ! -e ${bzImage}; then
   )
 fi
 
+echo "Mounting ${rootfs} on loopback... "
+if [ ! -e ${rootfs} ]; then
+  sudo mkdir ${rootfs}
+fi
+sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
+
+if test -e ${vmlinux}; then
+  sudo cp ${vmlinux} ${rootfs}/
+fi
+
 if test "${copy_modules_to_rootfs}x" = "yx"; then
-  if [ ! -e ${rootfs} ]; then
-    sudo mkdir ${rootfs}
-  fi
-
-  echo "Mounting ${rootfs} on loopback... "
-  sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
-
   if test ! -z "${kernel}"; then
     if test ! -d ${srcdir}/${kernel}; then
       echo "Copy the build the kernel sources in src/"
@@ -67,11 +71,11 @@ if test "${copy_modules_to_rootfs}x" = "yx"; then
       sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
     )
   fi
-
-  sync
-  sudo umount ${rootfs}
-  sudo rmdir ${rootfs}
 fi
+
+sync
+sudo umount ${rootfs}
+sudo rmdir ${rootfs}
 
 echo "Booting kernel: ${bzImage}"
 

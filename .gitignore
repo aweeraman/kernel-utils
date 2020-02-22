@@ -13,3 +13,4 @@ log
 *.mod
 *.order
 *.symvers
+notes/

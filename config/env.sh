@@ -32,4 +32,4 @@ wait_for_gdb_at_boot=n
 qemu_debug_args="-s -S"
 
 # Packages to install on rootfs
-packages_to_install="bpftrace bpfcc-tools"
+packages_to_install="bpftrace bpfcc-tools gdb"
