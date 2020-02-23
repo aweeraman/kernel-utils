@@ -39,7 +39,7 @@ if test ! -e ${bzImage}; then
   echo "${bzImage} not found, building kernel... "
   (
     cd ${srcdir}/${kernel}
-    time make ${compiler_flags} -j${procs}
+    eval "time make ${compiler_flags} -j${procs}"
   )
 fi
 
@@ -61,13 +61,13 @@ if test "${copy_modules_to_rootfs}x" = "yx"; then
     fi
     (
       cd ${srcdir}/${kernel}
-      sudo make -j${procs} modules
+      eval "sudo make ${compiler_flags} -j${procs} modules"
       sudo make INSTALL_MOD_PATH=${rootfs} modules_install
     )
     (
       cd ${samplesdir}
       KERNEL_PATH=${srcdir}/${kernel} make clean
-      KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make all
+      eval "KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make ${compiler_flags} all"
       sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
     )
   fi

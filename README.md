@@ -2,17 +2,32 @@
 
 This is a set of scripts and utilities to ease kernel development and testing in qemu.
 
+## Dependencies
+
+Kernel build dependencies:
+
+```
+$ sudo apt-get install build-essential linux-source bc kmod cpio flex cpio libncurses5-dev
+```
+
+Other dependencies:
+
+* debootstrap
+* qemu-system-x86 (for now)
+* ccache
+* clang (optional)
+
 ## Create an initrd image
 ```
 $ ./create-initrd.sh
 ```
 
-# Create a debootstrapped file system
+## Create a debootstrapped file system
 ```
 $ ./create-rootfs.sh
 ```
 
-# Download and compile the kernel
+## Download and compile the kernel
 ```
 $ mkdir src
 $ cd src
@@ -23,12 +38,12 @@ $ make -j$(nproc)
 $ cd ../../
 ```
 
-# Launch the new kernel in qemu
+## Launch the new kernel in qemu
 ```
 $ ./boot.sh linux
 ```
 
-# Configuration (config/env.sh)
+## Configuration (config/env.sh)
 ```
 # Number of processor threads
 procs=$(nproc)
@@ -64,7 +79,7 @@ wait_for_gdb_at_boot=n
 qemu_debug_args="-s -S"
 ```
 
-# Debugging
+## Debugging
 
 Set 'wait_for_gdb_at_boot=y' and at the gdb prompt, and run './boot.sh [kernel]'.
 Qemu will wait for the debugger in order to proceed. From a different shell, start

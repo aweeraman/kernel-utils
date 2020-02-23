@@ -1,4 +1,6 @@
-compiler_flags="CC=clang HOSTCC=clang"
+# Tweak the compiler flags
+# To use clang: compiler_flags="CC=clang HOSTCC=clang"
+compiler_flags="CC=\"ccache gcc\""
 
 # Number of processor threads
 procs=$(nproc)
