@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -10,7 +10,7 @@ read input
 
 echo -n "Creating rootfs... "
 qemu-img create ${basedir}/rootfs.img ${rootfs_size} >> ${basedir}/log
-mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
+/sbin/mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
 
 if [ ! -e ${rootfs} ]; then
   sudo mkdir ${rootfs}
