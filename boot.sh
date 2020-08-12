@@ -101,4 +101,4 @@ fi
 ${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} \
 	-hda rootfs.img \
 	-append "${root_device} rw console=ttyS0 nokaslr selinux=0 debug ${append_args}" \
-	-enable-kvm ${debug_args}
+	-enable-kvm ${debug_args} -nographic

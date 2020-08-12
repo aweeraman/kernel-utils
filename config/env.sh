@@ -15,7 +15,7 @@ samplesdir=${basedir}/samples
 busyboxdir=${depsdir}/busybox
 
 hostname=wintermute
-rootfs_size=1024m
+rootfs_size=2048m
 memory=512m
 
 # Option to compile and copy kernel modules to rootfs
