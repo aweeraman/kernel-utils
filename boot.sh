@@ -26,7 +26,7 @@ fi
 if test -z "${kernel}"; then
   echo "Please specify the kernel that you would like to use"
   echo "Available options are: "
-  ls -1 ${srcdir}
+  find ${srcdir} -maxdepth 1 -type d -exec basename {} \; | grep -v ${srcdir}
   exit 1
 fi
 
