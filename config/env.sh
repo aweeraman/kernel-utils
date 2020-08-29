@@ -19,8 +19,8 @@ rootfs_size=2048m
 memory=512m
 
 # Option to compile and copy kernel modules to rootfs
-copy_modules_to_rootfs=y
-copy_samples_to_rootfs=y
+copy_modules_to_rootfs=n
+copy_samples_to_rootfs=n
 
 debootstrap_arch=amd64
 qemu_arch=x86_64
