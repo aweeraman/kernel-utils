@@ -17,17 +17,21 @@ Other dependencies:
 * ccache
 * clang (optional)
 
-## Create an initrd image
+## Step 1: Create an initrd image
 ```
 $ ./create-initrd.sh
 ```
 
-## Create a debootstrapped file system
+## Step 2: Create a debootstrapped file system
+
+This step currently requires a Debian/Ubuntu (or derivative) distribution as it relies on
+debootstrap.
+
 ```
 $ ./create-rootfs.sh
 ```
 
-## Download and compile the kernel
+## Step 3: Download and compile the kernel under src/
 ```
 $ mkdir src
 $ cd src
@@ -38,10 +42,17 @@ $ make -j$(nproc)
 $ cd ../../
 ```
 
-## Launch the new kernel in qemu
+## Step 4: Launch the new kernel in qemu
+
+To boot the kernel created in Step 3:
+
 ```
 $ ./boot.sh linux
 ```
+
+The argument to the script is the directory under src/ which holds the kernel. Multiple trees
+of the kernel can exist under src/ and the directory name can be specified as an argument. Providing
+no arguments will list the available kernels that can be booted.
 
 ## Configuration (config/env.sh)
 ```
@@ -63,8 +74,8 @@ rootfs_size=512m
 memory=512
 
 # Option to compile and copy kernel modules to rootfs
-copy_modules_to_rootfs=y
-copy_samples_to_rootfs=y
+copy_modules_to_rootfs=n
+copy_samples_to_rootfs=n
 
 # Build and runtime architectures
 debootstrap_arch=amd64
