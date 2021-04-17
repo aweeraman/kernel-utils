@@ -98,7 +98,7 @@ else
   append_args="init=/lib/systemd/systemd"
 fi
 
-${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} \
+${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} -nographic \
 	-hda rootfs.img \
 	-append "${root_device} rw console=ttyS0 nokaslr selinux=0 debug ${append_args}" \
-	-enable-kvm ${debug_args} -nographic
+	-enable-kvm ${debug_args}

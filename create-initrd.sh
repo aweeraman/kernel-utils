@@ -26,18 +26,18 @@ if [ ! -e ${busyboxdir} ]; then
   mkdir -p ${busyboxdir}
   (
     cd ${depsdir}
-    git clone git@github.com:mirror/busybox.git >> ${basedir}/log
+    git clone git@github.com:mirror/busybox.git 2>&1 | tee -a ${basedir}/log
   )
 fi
 cp ${confdir}/busybox.config ${busyboxdir}/.config
 (
   cd ${busyboxdir}
-  make -j${procs} >> ${basedir}/log 2>&1
-  make CONFIG_PREFIX=${initrd} install >> ${basedir}/log 2>&1
+  make -j${procs} 2>&1 | tee -a ${basedir}/log
+  make CONFIG_PREFIX=${initrd} install 2>&1 | tee -a ${basedir}/log
 )
 
 echo -n "Building initrd... "
 (
   cd ${initrd}
-  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz) 2>> ${basedir}/log
+  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz) 2>&1 | tee -a ${basedir}/log
 )

@@ -12,8 +12,8 @@ echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
 read input
 
 echo -n "Creating rootfs... "
-qemu-img create ${basedir}/rootfs.img ${rootfs_size} >> ${basedir}/log
-/sbin/mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log
+qemu-img create ${basedir}/rootfs.img ${rootfs_size} 2>&1 | tee -a ${basedir}/log
+/sbin/mkfs.ext4 ${basedir}/rootfs.img 2>&1 | tee -a ${basedir}/log
 
 if [ ! -e ${rootfs} ]; then
   sudo mkdir ${rootfs}
@@ -24,7 +24,7 @@ sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
 echo "ok"
 
 echo -n "Bootstrapping filesystem... "
-$(sudo debootstrap unstable ${rootfs} http://deb.debian.org/debian/ >> ${basedir}/log)
+sudo /sbin/debootstrap unstable ${rootfs} http://deb.debian.org/debian/ 2>&1 | tee -a ${basedir}/log
 echo "ok"
 
 echo -n "Setting hostname: ${hostname}... "
