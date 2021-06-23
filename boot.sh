@@ -54,6 +54,11 @@ sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
 
 if test -e ${vmlinux}; then
   sudo cp ${vmlinux} ${rootfs}/
+  TMPDIR=$(mktemp -d)
+  (cd ${srcdir}/${kernel}; make INSTALL_MOD_PATH=${TMPDIR} modules_install)
+  sudo rm -rf ${rootfs}/lib/modules/*
+  sudo cp -r ${TMPDIR}/lib/modules/ ${rootfs}/lib/modules/
+  sudo rm -rf ${TMPDIR}
 fi
 
 if test "${copy_modules_to_rootfs}x" = "yx"; then
