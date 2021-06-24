@@ -42,7 +42,7 @@ if test ! -e ${bzImage}; then
   echo "${bzImage} not found, building kernel... "
   (
     cd ${srcdir}/${kernel}
-    eval "time make ${compiler_flags} -j${procs}"
+    time make ${compiler_flags} -j${procs}
   )
 fi
 
@@ -54,31 +54,29 @@ sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
 
 if test -e ${vmlinux}; then
   sudo cp ${vmlinux} ${rootfs}/
-  MODTMPDIR=$(mktemp -d)
-  (cd ${srcdir}/${kernel}; make INSTALL_MOD_PATH=${MODTMPDIR} modules_install)
-  sudo rm -rf ${rootfs}/lib/modules/*
-  sudo cp -r ${MODTMPDIR}/lib/modules/* ${rootfs}/lib/modules/
-  sudo rm -rf ${MODTMPDIR}
 fi
 
+echo "Removing existing kernel modules..."
+sudo rm -rf ${rootfs}/lib/modules/*
+
 if test "${copy_modules_to_rootfs}x" = "yx"; then
-  if test ! -z "${kernel}"; then
-    if test ! -d ${srcdir}/${kernel}; then
-      echo "Copy the build the kernel sources in src/"
-      exit 1
-    fi
     (
       cd ${srcdir}/${kernel}
-      eval "sudo make ${compiler_flags} -j${procs} modules"
+      make ${compiler_flags} -j${procs} modules
+
+      echo "Copying kernel modules to rootfs..."
       sudo make INSTALL_MOD_PATH=${rootfs} modules_install
     )
+fi
+
+if test "${copy_samples_to_rootfs}x" = "yx"; then
     (
       cd ${samplesdir}
-      KERNEL_PATH=${srcdir}/${kernel} make clean
-      eval "KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make ${compiler_flags} all"
+      KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make ${compiler_flags} all
+
+      echo "Copying sample kernel modules to rootfs..."
       sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
     )
-  fi
 fi
 
 sync
