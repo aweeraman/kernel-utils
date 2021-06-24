@@ -7,12 +7,12 @@ Here are some standard repos:
 
 Mainline:
 ```
-$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git mainline
 ```
 
 Stable:
 ```
-$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git stable
 ```
 
 Linux-next:
