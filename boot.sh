@@ -39,11 +39,24 @@ bzImage=${srcdir}/${kernel}/arch/${kernel_arch}/boot/bzImage
 vmlinux=${srcdir}/${kernel}/vmlinux
 
 if test ! -e ${bzImage}; then
-  echo "${bzImage} not found, building kernel... "
-  (
-    cd ${srcdir}/${kernel}
-    time make ${compiler_flags} -j${procs}
-  )
+  echo -n "No built kernel found, build one? (y / default: n) "
+  read input
+  if test "${input}y" = "yy"; then
+    echo -n "Kernel configuration (default: config/default.cfg): "
+    read kernelcfg
+    if [ -z "${kernelcfg}" ]; then
+      kernelcfg="${basedir}/config/default.cfg"
+    fi
+    echo "Building with ${kernelcfg}..."
+    (
+      cp ${kernelcfg} ${srcdir}/${kernel}/.config
+      cd ${srcdir}/${kernel}
+      time make ${compiler_flags} -j${procs} bzImage modules
+    )
+  else
+    echo "Build the kernel manually, and try again."
+    exit 0
+  fi
 fi
 
 echo "Mounting ${rootfs} on loopback... "
@@ -62,8 +75,6 @@ sudo rm -rf ${rootfs}/lib/modules/*
 if test "${copy_modules_to_rootfs}x" = "yx"; then
     (
       cd ${srcdir}/${kernel}
-      make ${compiler_flags} -j${procs} modules
-
       echo "Copying kernel modules to rootfs..."
       sudo make INSTALL_MOD_PATH=${rootfs} modules_install
     )

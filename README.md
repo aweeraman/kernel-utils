@@ -138,6 +138,22 @@ hbreak start_kernel, break _do_fork - set breakpoint
 set disassembly-flavor intel
 ```
 
+## Troubleshooting
+
+If you get the following error message when running the boot.sh script:
+
+```
+mount: [path]/rootfs: [path]/rootfs.img is already mounted.
+```
+
+Simply:
+
+```
+$ sudo umount rootfs
+```
+
+This is indicative of an error in a previous step, and will be tracked down and fixed.
+
 # License
 
 This project is distributed under the GPLv3 license.
