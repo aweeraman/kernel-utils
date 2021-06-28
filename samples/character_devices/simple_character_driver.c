@@ -44,7 +44,8 @@ int simple_module_init(void)
   /* Register a character device with the specified major number.
    * Check /proc/devices for already registered devices and use
    * a free one. You can create the device using
-   * mknod -m 666 /dev/simple_driver c 200 0 */
+   * mknod -m 666 /dev/simple_driver c 200 0
+   * To dynamically allocate a device number, use alloc_chrdev_region */
   register_chrdev(200                       /* Major number */,
 		  "Simple Character Driver" /* Name of the driver */,
 		  &driver_ops               /* File operations structure */);
