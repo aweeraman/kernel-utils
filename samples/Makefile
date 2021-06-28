@@ -1,6 +1,6 @@
-obj-y += 1_simple_modules/
-obj-y += 2_threads_and_locks/
-obj-y += 3_character_devices/
+obj-y += simple_modules/
+obj-y += threads_and_locks/
+obj-y += character_devices/
 
 all: 
 	make -j$(PROCS) -C $(KERNEL_PATH) M=$(shell pwd) modules
