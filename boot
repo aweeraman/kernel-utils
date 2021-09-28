@@ -24,14 +24,16 @@ if test ${count} -eq 0; then
 fi
 
 if test -z "${kernel}"; then
-  echo "Please specify the kernel that you would like to use"
-  echo "Available options are: "
-  find ${srcdir} -maxdepth 1 -type d -exec basename {} \; | grep -v ${srcdir}
+  echo "Please specify the kernel that you would like to use, such as:"
+  for dir in $(find ${srcdir} -mindepth 1 -maxdepth 1 \
+	                      -type d -exec basename {} \; | grep -v ${srcdir}); do
+    [ -e ${srcdir}/${dir}/MAINTAINERS ] && echo $dir
+  done
   exit 1
 fi
 
 if test ! -e "${srcdir}/${kernel}"; then
-  echo "Please copy kernel sources into src/. For example, src/linux-next"
+  echo "Please copy kernel sources into src/. For example, src/stable"
   exit 1
 fi
 
@@ -113,6 +115,6 @@ else
 fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} -nographic \
-	-hda rootfs.img \
+	-hda ${basedir}/rootfs.img \
 	-append "${root_device} rw console=ttyS0 nokaslr selinux=0 debug ${append_args}" \
 	-enable-kvm ${debug_args}
