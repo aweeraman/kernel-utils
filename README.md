@@ -19,7 +19,7 @@ Other dependencies:
 
 ## Step 1: Create an initrd image
 ```
-$ ./create-initrd.sh
+$ ./mk-initrd
 ```
 
 ## Step 2: Create a debootstrapped file system
@@ -28,7 +28,7 @@ This step currently requires a Debian/Ubuntu (or derivative) distribution as it 
 debootstrap.
 
 ```
-$ ./create-rootfs.sh
+$ ./mk-rootfs
 ```
 
 ## Step 3: Download and compile the kernel under src/
