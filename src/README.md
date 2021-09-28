@@ -17,7 +17,7 @@ $ git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git sta
 
 Linux-next:
 ```
-$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git
+$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git next
 ```
 
 Staging:
