@@ -39,7 +39,6 @@ fi
 
 bzImage=${srcdir}/${kernel}/arch/${kernel_arch}/boot/bzImage
 vmlinux=${srcdir}/${kernel}/vmlinux
-echo "woohoo $bzImage"
 
 if test ! -e ${bzImage}; then
   echo -n "No built kernel found, build one? (y / default: n) "
