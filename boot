@@ -39,6 +39,7 @@ fi
 
 bzImage=${srcdir}/${kernel}/arch/${kernel_arch}/boot/bzImage
 vmlinux=${srcdir}/${kernel}/vmlinux
+echo "woohoo $bzImage"
 
 if test ! -e ${bzImage}; then
   echo -n "No built kernel found, build one? (y / default: n) "
@@ -108,7 +109,7 @@ root_device=""
 initrd_args=""
 if test "${boot_into_initrd_shell}y" = "yy"; then
   append_args="rdinit=/init"
-  initrd_args="-initrd initramfs.cpio.gz"
+  initrd_args="-initrd ${basedir}/initramfs.cpio.gz"
 else
   root_device="root=/dev/sda"
   append_args="init=/lib/systemd/systemd"
@@ -116,5 +117,5 @@ fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} -nographic \
 	-hda ${basedir}/rootfs.img \
-	-append "${root_device} rw console=ttyS0 nokaslr selinux=0 debug ${append_args}" \
+	-append "${root_device} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug ${append_args}" \
 	-enable-kvm ${debug_args}
