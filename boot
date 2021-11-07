@@ -12,6 +12,18 @@ basedir=$(dirname $(readlink -f $0))
 
 qemu=qemu-system-${qemu_arch}
 
+check_availability_of() {
+	prog=$1
+	if ! command -v ${prog} 2>&1 > /dev/null; then
+		echo "$prog not found in path. Please install and try again."
+		exit 1
+	fi
+}
+
+check_availability_of make
+check_availability_of sudo
+check_availability_of $qemu
+
 if test ! -d ${srcdir}; then
   echo "Please copy kernel sources into ${srcdir}."
   exit 1

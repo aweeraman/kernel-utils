@@ -8,6 +8,17 @@ set -e
 basedir=$(dirname $(readlink -f $0))
 . ${basedir}/config/env.sh
 
+check_availability_of() {
+	prog=$1
+	if ! command -v ${prog} 2>&1 > /dev/null; then
+		echo "$prog not found in path. Please install and try again."
+		exit 1
+	fi
+}
+
+check_availability_of git
+check_availability_of make
+
 if [ -e ${initrd} ]; then
   echo -n "Removing existing initrd, press ENTER to proceed... "
   read input

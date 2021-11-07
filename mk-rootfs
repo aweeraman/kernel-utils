@@ -8,6 +8,19 @@ set -e
 basedir=$(dirname $(readlink -f $0))
 . ${basedir}/config/env.sh
 
+check_availability_of() {
+	prog=$1
+	if ! command -v ${prog} 2>&1 > /dev/null; then
+		echo "$prog not found in path. Please install and try again."
+		exit 1
+	fi
+}
+
+check_availability_of qemu-img
+check_availability_of /sbin/mkfs.ext4
+check_availability_of sudo
+check_availability_of /sbin/debootstrap
+
 echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
 read input
 
@@ -28,21 +41,21 @@ sudo /sbin/debootstrap unstable ${rootfs} http://deb.debian.org/debian/ 2>&1 | t
 echo "ok"
 
 echo -n "Setting hostname: ${hostname}... "
-sudo bash -c "echo '${hostname}' > ${rootfs}/etc/hostname"
+sudo sh -c "echo '${hostname}' > ${rootfs}/etc/hostname"
 echo "ok"
 
 echo "Set the root password... "
-sudo bash -c "chroot ${rootfs} passwd root"
+sudo sh -c "chroot ${rootfs} passwd root"
 
 echo "Enabling networking... "
 sudo cp ${confdir}/dhcp.network ${rootfs}/etc/systemd/network/
-sudo bash -c "chroot ${rootfs} systemctl enable systemd-networkd.service"
-sudo bash -c "chroot ${rootfs} systemctl enable systemd-resolved.service"
+sudo sh -c "chroot ${rootfs} systemctl enable systemd-networkd.service"
+sudo sh -c "chroot ${rootfs} systemctl enable systemd-resolved.service"
 
 if test ! -z "${packages_to_install}"; then
   echo "Installing additional packages... "
-  sudo bash -c "chroot ${rootfs} apt-get update"
-  sudo bash -c "chroot ${rootfs} apt-get install -y ${packages_to_install}"
+  sudo sh -c "chroot ${rootfs} apt-get update"
+  sudo sh -c "chroot ${rootfs} apt-get install -y ${packages_to_install}"
 fi
 
 echo -n "Cleaning up... "
