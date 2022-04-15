@@ -1,0 +1,7 @@
+#!/bin/sh
+
+rm -rf deps
+rm -rf initrd
+
+rm initramfs.cpio.gz
+rm log
