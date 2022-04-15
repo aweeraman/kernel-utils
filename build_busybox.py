@@ -1,4 +1,5 @@
 from subprocess import run
+from os import chdir
 from abc import ABC
 from sys import exit
 
@@ -21,16 +22,17 @@ class BoxBuilder(ABC):
     def __init__(self) -> None:
         super().__init__()
         self.__command = "make"
-        self.__busybox_dir = "busybox"
+        self.__busybox_dir = "deps/busybox"
+        self.__basedir = "."
 
-    def build(self, procs: str) -> None:
+    def build(self, procs: int) -> None:
         raise NotImplementedError
 
     def _goto_busybox_folder(self) -> None:
-        run(f"cd {self.__busybox_dir}", shell=True, check=True)
+        chdir(self.__busybox_dir)
 
     def _dump_log(self) -> str:
-        raise NotImplementedError
+        return f"2>&1 | tee -a {self.__basedir}/log"
 
 
 class CrossBoxBuilder(BoxBuilder):
@@ -45,11 +47,11 @@ class ARMBoxBuilder(CrossBoxBuilder):
         super().__init__(compiler)
         self._arch = "arm"
 
-    def build(self, procs: str) -> None:
+    def build(self, procs: int) -> None:
         self._goto_busybox_folder()
 
         run(
-            f"{self._BoxBuilder__command} -j{procs} ARCH={self._arch} CROSS_COMPILE={self._cross_compiler} {self._dump_log()}",
+            f"{self._BoxBuilder__command} -j{str(procs)} ARCH={self._arch} CROSS_COMPILE={self._cross_compiler} {self._dump_log()}",
             shell=True,
             check=True,
         )
@@ -59,19 +61,16 @@ class ARMBoxBuilder(CrossBoxBuilder):
             check=True,
         )
 
-    def _dump_log(self) -> str:
-        return "2>&1 | tee -a ${basedir}/log"
-
 
 class X86_64BoxBuilder(BoxBuilder):
     def __init__(self) -> None:
         super().__init__()
 
-    def build(self, procs: str) -> None:
+    def build(self, procs: int) -> None:
         self._goto_busybox_folder()
 
         run(
-            f"{self._BoxBuilder__command} -j{procs} {self._dump_log()}",
+            f"{self._BoxBuilder__command} -j{str(procs)} {self._dump_log()}",
             shell=True,
             check=True,
         )
@@ -81,19 +80,16 @@ class X86_64BoxBuilder(BoxBuilder):
             check=True,
         )
 
-    def _dump_log(self) -> str:
-        return "2>&1 | tee -a ${basedir}/log"
-
 
 if __name__ == "__main__":
     args: argparse.ArgumentParser = parse_cli_args()
 
     if args.arch == "x86_64":
         make = X86_64BoxBuilder()
-        # make.build()
+        make.build(2)
 
     elif args.arch == "arm":
         make = ARMBoxBuilder("arm-linux-gnueabi-")
-        # make.build()
+        make.build()
 
     exit(0)
