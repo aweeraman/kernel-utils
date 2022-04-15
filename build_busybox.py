@@ -2,6 +2,20 @@ from subprocess import run
 from abc import ABC
 from sys import exit
 
+import argparse
+
+
+def parse_cli_args() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "arch",
+        type=str,
+        help="Busybox's target architecture",
+    )
+
+    args = parser.parse_args()
+    return args
+
 
 class BoxBuilder(ABC):
     def __init__(self) -> None:
@@ -26,10 +40,9 @@ class CrossBoxBuilder(BoxBuilder):
         self._arch = ""
 
 
-# CROSS_COMPILE=arm-linux-gnueabi-
 class ARMBoxBuilder(CrossBoxBuilder):
     def __init__(self, compiler: str) -> None:
-        super().__init__()
+        super().__init__(compiler)
         self._arch = "arm"
 
     def build(self, procs: str) -> None:
@@ -73,4 +86,14 @@ class X86_64BoxBuilder(BoxBuilder):
 
 
 if __name__ == "__main__":
+    args: argparse.ArgumentParser = parse_cli_args()
+
+    if args.arch == "x86_64":
+        make = X86_64BoxBuilder()
+        # make.build()
+
+    elif args.arch == "arm":
+        make = ARMBoxBuilder("arm-linux-gnueabi-")
+        # make.build()
+
     exit(0)
