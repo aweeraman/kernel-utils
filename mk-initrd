@@ -42,9 +42,10 @@ if [ ! -e ${busyboxdir} ]; then
 fi
 cp ${confdir}/busybox.config ${busyboxdir}/.config
 (
-  cd ${busyboxdir}
-  make -j${procs} 2>&1 | tee -a ${basedir}/log
-  make CONFIG_PREFIX=${initrd} install 2>&1 | tee -a ${basedir}/log
+  cur_dir=$pwd
+  cd ..
+  python3 build_busybox.py $1
+  cd $cur_dir
 )
 
 echo -n "Building initrd... "
