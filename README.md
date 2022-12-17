@@ -70,6 +70,9 @@ depsdir=${basedir}/deps
 samplesdir=${basedir}/samples
 busyboxdir=${depsdir}/busybox
 
+# Dependencies
+busybox_tag=1_35_0
+
 # Rootfs and VM configuration
 hostname=wintermute
 rootfs_size=512m
