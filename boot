@@ -116,18 +116,16 @@ if test "${wait_for_gdb_at_boot}y" = "yy"; then
   debug_args=${qemu_debug_args}
 fi
 
+qemu_args=""
 append_args=""
-root_device=""
-initrd_args=""
 if test "${boot_into_initrd_shell}y" = "yy"; then
+  qemu_args="-initrd ${basedir}/initramfs.cpio.gz"
   append_args="rdinit=/init"
-  initrd_args="-initrd ${basedir}/initramfs.cpio.gz"
 else
-  root_device="root=/dev/sda"
-  append_args="init=/lib/systemd/systemd"
+  append_args="root=/dev/sda init=/lib/systemd/systemd"
 fi
 
-${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} -nographic \
+${qemu} -m ${memory} -kernel ${bzImage} ${qemu_args} -nographic \
 	-hda ${basedir}/rootfs.img \
-	-append "${root_device} ${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug" \
+	-append "${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug" \
 	-enable-kvm ${debug_args}
