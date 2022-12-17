@@ -11,48 +11,79 @@ basedir=$(dirname $(readlink -f $0))
 check_availability_of() {
 	prog=$1
 	if ! command -v ${prog} 2>&1 > /dev/null; then
-		echo "$prog not found in path. Please install and try again."
+		echo "$prog not found"
 		exit 1
 	fi
+}
+
+recreate_initrd_dir() {
+  if [ -e ${initrd} ]; then
+    echo -n "Deleting existing initrd... "
+    rm -rf ${initrd}
+    rm -f ${basedir}/initramfs.cpio.gz
+    echo "ok."
+  fi
+
+  echo -n "Creating initrd directory structure... "
+  mkdir ${initrd} && cd ${initrd}
+  mkdir -p bin sbin dev etc proc sys usr/bin usr/sbin
+  cp ${confdir}/init ${initrd}/init
+  chmod a+x ${initrd}/init
+  sudo mknod ${initrd}/dev/ram b 1 0
+  echo "ok"
+}
+
+build_and_install_busybox() {
+  if [ ! -e ${busyboxdir} ]; then
+    echo -n "Cloning busybox... "
+    mkdir -p ${busyboxdir}
+    (
+      cd ${depsdir}
+      git clone --depth 1 --branch ${busybox_tag} \
+	      git@github.com:mirror/busybox.git >> ${basedir}/log 2>&1
+      if [ $? -ne 0 ]; then
+        echo "failed."
+      else
+        echo "ok."
+      fi
+    )
+  fi
+  cp ${confdir}/busybox.config ${busyboxdir}/.config
+  (
+    cd ${busyboxdir}
+    echo -n "Building busybox... "
+    make -j${procs} >> ${basedir}/log 2>&1
+    if [ $? -ne 0 ]; then
+      echo "failed."
+      exit 1
+    else
+      echo "ok."
+    fi
+    echo -n "Installing busybox... "
+    make CONFIG_PREFIX=${initrd} install >> ${basedir}/log 2>&1
+    if [ $? -ne 0 ]; then
+      echo "failed."
+      exit 1
+    else
+      echo "ok."
+    fi
+  )
 }
 
 check_availability_of git
 check_availability_of make
 
-if [ -e ${initrd} ]; then
-  echo -n "Removing existing initrd, press ENTER to proceed... "
-  read input
-  rm -rf ${initrd}
-fi
+recreate_initrd_dir
+build_and_install_busybox
 
-echo -n "Creating initrd filesystem... "
-mkdir ${initrd} && cd ${initrd}
-mkdir -p bin sbin etc proc sys usr/bin usr/sbin
-cp ${confdir}/init ${initrd}/init
-chmod a+x ${initrd}/init
-echo "ok"
-
-echo "Building dependencies... "
-if [ ! -e ${busyboxdir} ]; then
-  mkdir -p ${busyboxdir}
-  (
-    cd ${depsdir}
-    git clone --depth 1 --branch ${busybox_tag} git@github.com:mirror/busybox.git 2>&1 | tee -a ${basedir}/log
-  )
-fi
-cp ${confdir}/busybox.config ${busyboxdir}/.config
-(
-  cd ${busyboxdir}
-  make -j${procs} 2>&1 | tee -a ${basedir}/log
-  if [ $? -ne 0 ]; then
-    echo "Build failed."
-    exit 1
-  fi
-  make CONFIG_PREFIX=${initrd} install 2>&1 | tee -a ${basedir}/log
-)
-
-echo -n "Building initrd... "
+echo "Building initrd... "
 (
   cd ${initrd}
-  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz) 2>&1 | tee -a ${basedir}/log
+  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz 2>&1) >> ${basedir}/log 2>&1
+  if [ $? -ne 0 ]; then
+    echo "failed."
+    exit 1
+  else
+    echo "ok."
+  fi
 )
