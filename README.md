@@ -16,6 +16,8 @@ Other dependencies:
 * qemu-system-x86 (for now)
 * ccache
 * clang (optional)
+* time
+* gdb
 
 ## Step 1: Create an initrd image
 ```

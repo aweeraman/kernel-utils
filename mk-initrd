@@ -37,13 +37,17 @@ if [ ! -e ${busyboxdir} ]; then
   mkdir -p ${busyboxdir}
   (
     cd ${depsdir}
-    git clone git@github.com:mirror/busybox.git 2>&1 | tee -a ${basedir}/log
+    git clone --depth 1 --branch ${busybox_tag} git@github.com:mirror/busybox.git 2>&1 | tee -a ${basedir}/log
   )
 fi
 cp ${confdir}/busybox.config ${busyboxdir}/.config
 (
   cd ${busyboxdir}
   make -j${procs} 2>&1 | tee -a ${basedir}/log
+  if [ $? -ne 0 ]; then
+    echo "Build failed."
+    exit 1
+  fi
   make CONFIG_PREFIX=${initrd} install 2>&1 | tee -a ${basedir}/log
 )
 

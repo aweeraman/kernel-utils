@@ -6,3 +6,5 @@ mount -t sysfs none /sys
 # https://busybox.net/FAQ.html#job_control
 mknod /dev/ttyS0 c 4 64
 setsid sh -c 'exec sh </dev/ttyS0 >/dev/ttyS0 2>&1'
+
+/bin/sh
