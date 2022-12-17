@@ -77,6 +77,7 @@ echo "Mounting ${rootfs} on loopback... "
 if [ ! -e ${rootfs} ]; then
   sudo mkdir ${rootfs}
 fi
+sudo umount ${rootfs} || true
 sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
 
 if test -e ${vmlinux}; then
@@ -128,5 +129,5 @@ fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} ${initrd_args} -nographic \
 	-hda ${basedir}/rootfs.img \
-	-append "${root_device} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug ${append_args}" \
+	-append "${root_device} ${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug" \
 	-enable-kvm ${debug_args}

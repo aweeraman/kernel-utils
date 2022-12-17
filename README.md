@@ -142,19 +142,18 @@ set disassembly-flavor intel
 
 ## Troubleshooting
 
-If you get the following error message when running the boot.sh script:
+If you run into issues booting into the root device, ensure the following options are builtin:
 
 ```
-mount: [path]/rootfs: [path]/rootfs.img is already mounted.
+ONFIG_EXT4_FS=y
+CONFIG_IA32_EMULATION=y
+ONFIG_VIRTIO=y
+CONFIG_VIRTIO_RING=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_VIRTIO_BALLOON=y
+CONFIG_VIRTIO_BLK=y
+CONFIG_VIRTIO_NET=y
 ```
-
-Simply:
-
-```
-$ sudo umount rootfs
-```
-
-This is indicative of an error in a previous step, and will be tracked down and fixed.
 
 # License
 
