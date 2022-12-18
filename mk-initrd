@@ -29,7 +29,6 @@ recreate_initrd_dir() {
   mkdir -p bin sbin dev etc proc sys usr/bin usr/sbin
   cp ${confdir}/init ${initrd}/init
   chmod a+x ${initrd}/init
-  sudo mknod ${initrd}/dev/ram b 1 0
   echo "ok"
 }
 
