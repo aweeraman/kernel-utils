@@ -17,7 +17,7 @@ check_availability_of() {
 }
 
 recreate_initrd_dir() {
-  if [ -e ${initrd} ]; then
+  if [ -e "${initrd}" ]; then
     echo -n "Deleting existing initrd... "
     rm -rf ${initrd}
     rm -f ${basedir}/initramfs.cpio.gz

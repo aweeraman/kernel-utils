@@ -20,22 +20,24 @@ check_availability_of() {
 	fi
 }
 
+check_availability_of time
 check_availability_of make
+check_availability_of lz4c
 check_availability_of sudo
 check_availability_of $qemu
 
-if test ! -d ${srcdir}; then
+if [ ! -d ${srcdir} ]; then
   echo "Please copy kernel sources into ${srcdir}."
   exit 1
 fi
 
 count=$(ls -1 ${srcdir} | wc -l)
-if test ${count} -eq 0; then
+if [ "${count}" -eq 0 ]; then
   echo "Please copy kernel sources into ${srcdir}."
   exit 1
 fi
 
-if test -z "${kernel}"; then
+if [ -z "${kernel}" ]; then
   echo "Please specify the kernel that you would like to use, such as:"
   for dir in $(find ${srcdir} -mindepth 1 -maxdepth 1 \
 	                      -type d -exec basename {} \; | grep -v ${srcdir}); do
@@ -44,7 +46,7 @@ if test -z "${kernel}"; then
   exit 1
 fi
 
-if test ! -e "${srcdir}/${kernel}"; then
+if [ ! -e "${srcdir}/${kernel}" ]; then
   echo "Please copy kernel sources into src/. For example, src/stable"
   exit 1
 fi
@@ -52,10 +54,10 @@ fi
 bzImage=${srcdir}/${kernel}/arch/${kernel_arch}/boot/bzImage
 vmlinux=${srcdir}/${kernel}/vmlinux
 
-if test ! -e ${bzImage}; then
+if [ ! -e "${bzImage}" ]; then
   echo -n "No built kernel found, build one? (y / default: n) "
   read input
-  if test "${input}y" = "yy"; then
+  if [ "${input}" = "y" ]; then
     echo -n "Kernel configuration (default: config/default.cfg): "
     read kernelcfg
     if [ -z "${kernelcfg}" ]; then
@@ -80,14 +82,16 @@ fi
 sudo umount ${rootfs} || true
 sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
 
-if test -e ${vmlinux}; then
-  sudo cp ${vmlinux} ${rootfs}/
+if [ -e "${vmlinux}" ]; then
+  sudo cp ${vmlinux} ${rootfs}
 fi
 
 echo "Removing existing kernel modules..."
-sudo rm -rf ${rootfs}/lib/modules/*
+if [ ! -z "${rootfs}" ]; then
+  sudo rm -rf ${rootfs}/lib/modules/*
+fi
 
-if test "${copy_modules_to_rootfs}x" = "yx"; then
+if [ "${copy_modules_to_rootfs}" = "y" ]; then
     (
       cd ${srcdir}/${kernel}
       echo "Copying kernel modules to rootfs..."
@@ -95,7 +99,7 @@ if test "${copy_modules_to_rootfs}x" = "yx"; then
     )
 fi
 
-if test "${copy_samples_to_rootfs}x" = "yx"; then
+if [ "${copy_samples_to_rootfs}" = "y" ]; then
     (
       cd ${samplesdir}
       KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make ${compiler_flags} all
@@ -111,13 +115,14 @@ sudo rmdir ${rootfs}
 echo "Booting kernel: ${bzImage}"
 
 debug_args=""
-if test "${wait_for_gdb_at_boot}y" = "yy"; then
+if [ "${wait_for_gdb_at_boot}" = "y" ]; then
   debug_args=${qemu_debug_args}
 fi
 
 qemu_args=""
 append_args=""
-if test "${boot_into_initrd_shell}y" = "yy"; then
+
+if [ "${boot_into_initrd_shell}" = "y" ]; then
   qemu_args="-initrd ${basedir}/initramfs.cpio.gz"
   append_args="rdinit=/init"
 else
