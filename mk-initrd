@@ -79,7 +79,7 @@ build_and_install_busybox
 echo "Building initrd... "
 (
   cd ${initrd}
-  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz 2>&1) >> ${basedir}/log 2>&1
+  $(find . | cpio -oHnewc | gzip > ${basedir}/initramfs.cpio.gz) >> ${basedir}/log 2>&1
   if [ $? -ne 0 ]; then
     echo "failed."
     exit 1

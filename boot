@@ -105,7 +105,6 @@ if test "${copy_samples_to_rootfs}x" = "yx"; then
     )
 fi
 
-sync
 sudo umount ${rootfs}
 sudo rmdir ${rootfs}
 
@@ -122,10 +121,10 @@ if test "${boot_into_initrd_shell}y" = "yy"; then
   qemu_args="-initrd ${basedir}/initramfs.cpio.gz"
   append_args="rdinit=/init"
 else
+  qemu_args="-hda ${basedir}/rootfs.img"
   append_args="root=/dev/sda init=/lib/systemd/systemd"
 fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} ${qemu_args} -nographic \
-	-hda ${basedir}/rootfs.img \
 	-append "${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug" \
 	-enable-kvm ${debug_args}
