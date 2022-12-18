@@ -128,7 +128,7 @@ append_args=""
 
 if [ "${boot_into_initrd_shell}" = "y" ]; then
   qemu_args="-initrd ${basedir}/initramfs.cpio.gz"
-  append_args="rdinit=/init"
+  append_args="init=/init"
 else
   qemu_args="-hda ${basedir}/rootfs.img"
   append_args="root=/dev/sda init=/lib/systemd/systemd"
