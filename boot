@@ -75,42 +75,46 @@ if [ ! -e "${bzImage}" ]; then
   fi
 fi
 
-echo "Mounting ${rootfs} on loopback... "
-if [ ! -e ${rootfs} ]; then
-  sudo mkdir ${rootfs}
+if [ "${boot_into_initrd_shell}" = "n" ]; then
+
+  echo "Mounting ${rootfs} on loopback... "
+  if [ ! -e ${rootfs} ]; then
+    sudo mkdir ${rootfs}
+  fi
+  sudo umount ${rootfs} || true
+  sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
+
+  if [ -e "${vmlinux}" ]; then
+    sudo cp ${vmlinux} ${rootfs}
+  fi
+
+  echo "Removing existing kernel modules..."
+  if [ ! -z "${rootfs}" ]; then
+    sudo rm -rf ${rootfs}/lib/modules/*
+  fi
+
+  if [ "${copy_modules_to_rootfs}" = "y" ]; then
+      (
+        cd ${srcdir}/${kernel}
+        echo "Copying kernel modules to rootfs..."
+        sudo make INSTALL_MOD_PATH=${rootfs} modules_install
+      )
+  fi
+
+  if [ "${copy_samples_to_rootfs}" = "y" ]; then
+      (
+        cd ${samplesdir}
+        KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make ${compiler_flags} all
+
+        echo "Copying sample kernel modules to rootfs..."
+        sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
+      )
+  fi
+
+  sudo umount ${rootfs}
+  sudo rmdir ${rootfs}
 fi
-sudo umount ${rootfs} || true
-sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
 
-if [ -e "${vmlinux}" ]; then
-  sudo cp ${vmlinux} ${rootfs}
-fi
-
-echo "Removing existing kernel modules..."
-if [ ! -z "${rootfs}" ]; then
-  sudo rm -rf ${rootfs}/lib/modules/*
-fi
-
-if [ "${copy_modules_to_rootfs}" = "y" ]; then
-    (
-      cd ${srcdir}/${kernel}
-      echo "Copying kernel modules to rootfs..."
-      sudo make INSTALL_MOD_PATH=${rootfs} modules_install
-    )
-fi
-
-if [ "${copy_samples_to_rootfs}" = "y" ]; then
-    (
-      cd ${samplesdir}
-      KERNEL_PATH=${srcdir}/${kernel} PROCS=${procs} make ${compiler_flags} all
-
-      echo "Copying sample kernel modules to rootfs..."
-      sudo KERNEL_PATH=${srcdir}/${kernel} INSTALL_MOD_PATH=${rootfs} make install
-    )
-fi
-
-sudo umount ${rootfs}
-sudo rmdir ${rootfs}
 
 echo "Booting kernel: ${bzImage}"
 
