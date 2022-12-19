@@ -9,58 +9,79 @@ basedir=$(dirname $(readlink -f $0))
 . ${basedir}/config/env.sh
 
 check_availability_of() {
-	prog=$1
-	if ! command -v ${prog} 2>&1 > /dev/null; then
-		echo "$prog not found in path. Please install and try again."
-		exit 1
-	fi
+  prog=$1
+  if ! command -v ${prog} 2>&1 > /dev/null; then
+    echo "$prog not found in path. Please install and try again."
+    exit 1
+  fi
 }
 
+log_status() {
+  status=$1
+  if [ $status -ne 0 ]; then
+    echo "failed."
+    exit 1
+  else
+    echo "ok."
+  fi
+}
+
+check_availability_of sudo
 check_availability_of qemu-img
 check_availability_of /sbin/mkfs.ext4
-check_availability_of sudo
 check_availability_of /sbin/debootstrap
 
-echo -n "Removing existing ${rootfs}, press ENTER to proceed... "
-read input
+if [ -e "${basedir}/rootfs.img" ]; then
+  echo -n "Proceed to recreate ${basedir}/rootfs.img (y/N)? "
+  read input
+  if [ "$input" != "y" ]; then
+    exit 1
+  fi
+fi
 
-echo -n "Creating rootfs... "
-qemu-img create ${basedir}/rootfs.img ${rootfs_size} 2>&1 | tee -a ${basedir}/log
-/sbin/mkfs.ext4 ${basedir}/rootfs.img 2>&1 | tee -a ${basedir}/log
+echo -n "Creating ${rootfs_size} disk image... "
+qemu-img create ${basedir}/rootfs.img ${rootfs_size} >> ${basedir}/log 2>&1
+log_status $?
+
+echo -n "Creating ext4 filesystem... "
+/sbin/mkfs.ext4 ${basedir}/rootfs.img >> ${basedir}/log 2>&1
+log_status $?
 
 if [ ! -e ${rootfs} ]; then
+  echo "Creating ${rootfs}..."
   sudo mkdir ${rootfs}
 fi
 
-echo -n "Mounting ${rootfs} on loopback... "
+echo "Mounting ${basedir}/rootfs.img... "
+sudo umount ${rootfs} >> ${basedir}/log 2>&1 || true
 sudo mount -o loop ${basedir}/rootfs.img ${rootfs}
-echo "ok"
 
-echo -n "Bootstrapping filesystem... "
-sudo /sbin/debootstrap unstable ${rootfs} http://deb.debian.org/debian/ 2>&1 | tee -a ${basedir}/log
-echo "ok"
+echo "Bootstrapping filesystem... "
+sudo /sbin/debootstrap unstable ${rootfs} http://deb.debian.org/debian/ >> ${basedir}/log 2>&1
 
-echo -n "Setting hostname: ${hostname}... "
+echo "Setting hostname: ${hostname}... "
 sudo sh -c "echo '${hostname}' > ${rootfs}/etc/hostname"
-echo "ok"
 
-echo "Set the root password... "
+echo "Setting the root password... "
 sudo sh -c "chroot ${rootfs} passwd root"
 
-echo "Enabling networking... "
-sudo cp ${confdir}/dhcp.network ${rootfs}/etc/systemd/network/
-sudo sh -c "chroot ${rootfs} systemctl enable systemd-networkd.service"
-sudo sh -c "chroot ${rootfs} systemctl enable systemd-resolved.service"
-
-if test ! -z "${packages_to_install}"; then
-  echo "Installing additional packages... "
-  sudo sh -c "chroot ${rootfs} apt-get update"
-  sudo sh -c "chroot ${rootfs} apt-get install -y ${packages_to_install}"
+if [ ! -z "${packages_to_install}" ]; then
+  echo "Running apt update... "
+  sudo sh -c "chroot ${rootfs} apt update" >> ${basedir}/log 2>&1
+  echo "Installing packages: ${packages_to_install}... "
+  sudo chroot ${rootfs} /bin/sh -c "export TMPDIR=/tmp; apt install -y ${packages_to_install}" >> ${basedir}/log 2>&1
 fi
 
-echo -n "Cleaning up... "
-sync
-sleep 5
+sudo cp ${confdir}/dhcp.network ${rootfs}/etc/systemd/network/
+
+echo "Enabling systemd-networkd.service... "
+sudo sh -c "chroot ${rootfs} systemctl enable systemd-networkd.service" >> ${basedir}/log 2>&1
+
+echo "Enabling systemd-resolved.service... "
+sudo sh -c "chroot ${rootfs} systemctl enable systemd-resolved.service" >> ${basedir}/log 2>&1
+
+echo "Unmounting ${rootfs}... "
 sudo umount ${rootfs}
+
+echo "Deleting ${rootfs}... "
 sudo rmdir ${rootfs}
-echo "ok"

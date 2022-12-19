@@ -13,7 +13,8 @@ $ sudo apt-get install e2fsprogs build-essential linux-source bc kmod cpio flex 
 Other dependencies:
 
 * debootstrap
-* qemu-system-x86 (for now)
+* qemu-system-x86
+* qemu-utils
 * ccache
 * clang (optional)
 * time

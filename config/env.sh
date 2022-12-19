@@ -18,7 +18,7 @@ busyboxdir=${depsdir}/busybox
 busybox_tag=1_35_0
 
 hostname=wintermute
-rootfs_size=8192m
+rootfs_size=4096m
 memory=512m
 
 # Option to compile and copy kernel modules to rootfs
@@ -37,4 +37,4 @@ wait_for_gdb_at_boot=n
 qemu_debug_args="-s -S"
 
 # Packages to install on rootfs
-packages_to_install="bpftrace bpfcc-tools gdb"
+packages_to_install="systemd-resolved bpftrace bpfcc-tools gdb"
