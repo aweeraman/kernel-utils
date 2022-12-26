@@ -88,8 +88,8 @@ if [ "${boot_into_initrd_shell}" = "n" ]; then
     sudo cp ${vmlinux} ${rootfs}
   fi
 
-  echo "Removing existing kernel modules..."
   if [ ! -z "${rootfs}" ]; then
+    echo "Removing existing kernel modules..."
     sudo rm -rf ${rootfs}/lib/modules/*
   fi
 
