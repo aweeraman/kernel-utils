@@ -149,9 +149,9 @@ set disassembly-flavor intel
 If you run into issues booting into the root device, ensure the following options are builtin:
 
 ```
-ONFIG_EXT4_FS=y
+CONFIG_EXT4_FS=y
 CONFIG_IA32_EMULATION=y
-ONFIG_VIRTIO=y
+CONFIG_VIRTIO=y
 CONFIG_VIRTIO_RING=y
 CONFIG_VIRTIO_PCI=y
 CONFIG_VIRTIO_BALLOON=y
