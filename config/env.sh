@@ -18,7 +18,7 @@ busyboxdir=${depsdir}/busybox
 busybox_tag=1_35_0
 
 hostname=wintermute
-rootfs_size=8192m
+rootfs_size=2048m
 memory=512m
 
 # Option to compile and copy kernel modules to rootfs
