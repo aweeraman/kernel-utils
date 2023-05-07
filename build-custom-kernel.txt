@@ -1,0 +1,152 @@
+PREPARE A CUSTOM KERNEL
+=======================
+
+From the kernel source directory, execute:
+$ make tinyconfig
+
+Then, execute 'make menuconfig' and enable the following options:
+
+Kernel hacking > x86 Debugging
+	* printk and demsg options
+		* Show timing information on printks
+		* Set Default console loglevel and Default message log level to 7
+	* Compile-time checks and compiler options
+		* Debug information (Rely on the toolchain's implicit default DWARF version)
+		* Generate BTF typeinfo
+	* Generic Kernel Debugging Instruments
+		* Magic SysRq key
+		* Debug Filesystem
+		* KGDB: kernel debugger
+	* Tracers
+	* x86 Debugging
+		* Enable verbose x86 bootup messages
+		* Early printk
+
+General setup
+	* Configure standard kernel features (expert users):
+		* Multiple users, groups and capabilities support
+		* open by fhandle syscalls
+		* Posix clocks and timers
+		* Enable support for printk
+		* BUG() support
+		* Enable futex support
+		* Enable eventpoll support
+		* Enable signalfd() system call
+		* Enable timerfd() system call
+		* Enable eventfd() system call
+		* Use full shmem filesystem
+		* Enable AIO support
+		* Load all symbols for debugging/ksymoops
+	* BPF subsystem
+		* Enable BPF Just In Time compiler
+		* Disable unprivileged BPF by default
+		* Enable BPF LSM Instrumentation
+	* CPU/Task time and stats accounting
+		* Pressure stall information tracking
+	* Control Group support
+		* CPU Controller
+			* CPU Bandwidth provisioning for FAIR_GROUP_SCHED
+		* Support for eBPF programs attached to cgroups
+	* Namespaces support
+	* Initial RAM filesystem and RAM disk (initramfs/initrd) support
+	* Enable kcmp() system call
+
+64-bit kernel
+
+Processor type and features
+	* Symmetric multi-processing support
+	* Linux guest support
+		* Enable paravirtualization code
+		* KVM Guest support (including kvmclock)
+	* Enable DMI scanning
+	* EFI runtime service support
+
+Power Management and ACPI options
+	* ACPI (Advanced Configuration and Power Interface) Support
+
+Binary emulations
+	* IA32 Emulation
+	* x32 ABI for 64-bit mode
+
+Virtualization
+
+General architecture-dependent options
+	* Enable seccomp to safely execute untrusted bytecode
+
+Enable loadable module support
+
+Enable the block layer
+	* Partition Types
+		* Advanced partition selection
+			* PC BIOS (MSDOS partition tables) support
+			* EFI GUID Partition support
+
+Executable file formats
+	* Kernel support for ELF binaries
+	* Kernel support for scripts starting with #!
+
+Networking support
+	* Networking options
+		* UNIX domain sockets
+		* TCP/IP networking
+
+File systems
+	* Second extended fs support
+	* The Extended 3 (ext3) file system
+		* Ext3 POSIX Access Control Lists
+	* The Extended 4 (ext4) filesystem
+		* Ext4 POSIX Access Control Lists
+	* Kernel automounter support (supports v3, v4 and v5)
+	* Enable POSIX file locking API
+	* Inotify support for userspace
+	* Pseudo filesystems:
+		* /proc file system support
+		* Sysctl support (/proc/sys)
+		* sysfs file system support
+		* Tmpfs virtual memory file system support (former shm fs)
+			* Tmpfs POSIX Access Control Lists
+		* EFI variable filesystem
+
+Security options
+	* Enable different security models
+
+Device Drivers
+	* PCI support
+	* Generic Driver Options
+		* Maintain a devtmpfs filesystem to mount at /dev
+		* Automount devtmpfs at /dev, after the kernel mounted the rootfs
+		* Firmware loader
+			* Firmware loading facility
+			* Enable users to initiate firmware updates using sysfs
+	* Firmware Drivers
+		* Add firmware-provided memory map to sysfs
+		* Export DMI identification via sysfs to userspace
+		* DMI table support in sysfs
+		* QEMU fw_cfg device support in sysfs
+			* QEMU fw_cfg device parameter parsing
+	* Virtio drivers:
+		* PCI driver for virtio devices
+	* Block devices
+		* Virtio block driver
+	* SCSI device support
+		* SCSI disk support
+	* Serial ATA and Parallel ATA drivers (libata)
+		* Intel ESB, ICH, PIIX3, PIIX4 PATA/SATA support
+	* Network device support
+		* Virtio network driver
+		* Ethernet driver support
+			* Intel devices
+			* Intel(R) PRO/1000 Gigabit Ethernet support
+	* Character Devices
+		* Enable TTY
+		* Virtual terminal
+			* Enable character translations in console
+			* Support for console on virtual terminals
+		* Unix98 PTY support
+		* Legacy (BSD) PTY support
+		* TTY driver to output user messages via printk
+		* Serial drivers
+			* 8250/16550 and compatible serial support
+			* Console on 8250/16550 and compatible serial port
+
+Finally, build the kernel with "make bzImage modules"
