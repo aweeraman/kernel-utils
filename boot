@@ -135,5 +135,5 @@ else
 fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} ${qemu_args} -nographic \
-	-append "${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 debug" \
+	-append "${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 audit=0 debug" \
 	-enable-kvm ${debug_args}
