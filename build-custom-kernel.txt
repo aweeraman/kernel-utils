@@ -84,11 +84,14 @@ Enable the block layer
 Executable file formats
 	* Kernel support for ELF binaries
 	* Kernel support for scripts starting with #!
+	* Kernel support for MISC binaries
 
 Networking support
 	* Networking options
+		* Packet socket
 		* UNIX domain sockets
 		* TCP/IP networking
+		* Network packet filtering framework (Netfilter)
 
 File systems
 	* Second extended fs support
@@ -136,7 +139,9 @@ Device Drivers
 		* Virtio network driver
 		* Ethernet driver support
 			* Intel devices
-			* Intel(R) PRO/1000 Gigabit Ethernet support
+				* Intel(R) PRO/100+ support
+				* Intel(R) PRO/1000 Gigabit Ethernet support
+				* Intel(R) PRO/1000 PCI-Express Gigabit Ethernet support
 	* Character Devices
 		* Enable TTY
 		* Virtual terminal
