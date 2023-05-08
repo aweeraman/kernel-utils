@@ -125,6 +125,7 @@ fi
 
 qemu_args=""
 append_args=""
+netdev_args="user,id=network0 -device e1000,netdev=network0"
 
 if [ "${boot_into_initrd_shell}" = "y" ]; then
   qemu_args="-initrd ${basedir}/initramfs.cpio.gz"
@@ -136,4 +137,5 @@ fi
 
 ${qemu} -m ${memory} -kernel ${bzImage} ${qemu_args} -nographic \
 	-append "${append_args} rw console=ttyS0 earlyprintk=vga nokaslr selinux=0 audit=0 debug" \
-	-enable-kvm ${debug_args}
+	-enable-kvm ${debug_args} \
+	-netdev ${netdev_args}
