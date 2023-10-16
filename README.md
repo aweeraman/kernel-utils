@@ -7,7 +7,7 @@ This is a set of scripts and utilities to ease kernel development and testing in
 Kernel build dependencies:
 
 ```
-$ sudo apt-get install e2fsprogs build-essential linux-source bc kmod cpio flex cpio libncurses5-dev liblz4-tool
+$ sudo apt-get install e2fsprogs build-essential linux-source bc kmod cpio flex cpio libncurses5-dev liblz4-tool bison git flex bison libssl-dev libelf-dev
 ```
 
 Other dependencies:
