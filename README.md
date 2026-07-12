@@ -1,164 +1,217 @@
-# Kernel Development Utilities
+# Linux Kernel QEMU Harness
 
-This is a set of scripts and utilities to ease kernel development and testing in qemu.
+A minimal self-contained Makefile for packaging an already-built Linux
+kernel with a Debian initramfs and running it under QEMU.
 
-## Dependencies
+Simply drop-in the Makefile to the working directory and use it as part of
+your development workflow.
 
-Kernel build dependencies:
+Building, configuring, updating, and selecting the kernel are deliberately out
+of scope. Use your normal kernel development workflow, then point this Makefile
+at its build output.
 
-```
-$ sudo apt-get install e2fsprogs build-essential linux-source bc kmod cpio flex cpio libncurses5-dev liblz4-tool bison git flex bison libssl-dev libelf-dev
-```
+## Requirements
 
-Other dependencies:
+The currently supported host architectures are x86-64 and AArch64.
 
-* debootstrap
-* qemu-system-x86
-* qemu-utils
-* ccache
-* clang (optional)
-* time
-* gdb
+On Debian and Ubuntu, install the required initramfs, QEMU, and debugging tools
+with:
 
-## Step 1: Create an initrd image
-```
-$ ./mk-initrd
+```sh
+make deps
 ```
 
-## Step 2: Create a debootstrapped file system
+## Quick start
 
-This step currently requires a Debian/Ubuntu (or derivative) distribution as it relies on
-debootstrap.
+First build a kernel using whatever source tree, configuration, compiler, and
+build process you prefer. The build must produce the bootable kernel image and
+kernel modules.
 
-```
-$ ./mk-rootfs
-```
+Then create an initramfs and boot it.
 
-## Step 3: Download and compile the kernel under src/
-```
-$ mkdir src
-$ cd src
-$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-$ cd linux
-$ make defconfig
-$ make -j$(nproc)
-$ cd ../../
-```
+The default kernel source directory is `./mainline`. Thus, a directory arranged
+like this needs no `KERNELSRC` argument:
 
-## Step 4: Launch the new kernel in qemu
-
-To boot the kernel created in Step 3:
-
-```
-$ ./boot.sh linux
+```text
+work/
+|-- Makefile <-- This project
+`-- mainline/
+    |-- Makefile
+    |-- vmlinux
+    `-- arch/...
 ```
 
-The argument to the script is the directory under src/ which holds the kernel. Multiple trees
-of the kernel can exist under src/ and the directory name can be specified as an argument. Providing
-no arguments will list the available kernels that can be booted.
+Run `make` without a target to see all targets, variables, and examples:
 
-## Configuration (config/env.sh)
-```
-# Number of processor threads
-procs=$(nproc)
-
-# Directory locations
-confdir=${basedir}/config
-initrd=${basedir}/initrd
-srcdir=${basedir}/src
-rootfs=${basedir}/rootfs
-depsdir=${basedir}/deps
-samplesdir=${basedir}/samples
-busyboxdir=${depsdir}/busybox
-
-# Dependencies
-busybox_tag=1_35_0
-
-# Rootfs and VM configuration
-hostname=wintermute
-rootfs_size=512m
-memory=512
-
-# Option to compile and copy kernel modules to rootfs
-copy_modules_to_rootfs=n
-copy_samples_to_rootfs=n
-
-# Build and runtime architectures
-debootstrap_arch=amd64
-qemu_arch=x86_64
-kernel_arch=x86_64
-
-# Boot into initramfs shell
-boot_into_initrd_shell=n
-
-# Set this to yes to stop the CPU at boot and wait for debugger
-wait_for_gdb_at_boot=n
-qemu_debug_args="-s -S"
+```sh
+make
 ```
 
-## Debugging
-
-Set 'wait_for_gdb_at_boot=y' and at the gdb prompt, and run './boot.sh [kernel]'.
-Qemu will wait for the debugger in order to proceed. From a different shell, start
-'gdb ./vmlinux' and enter the following to continue booting and debugging. Also,
-confirm that 'CONFIG_DEBUG_INFO=y' is set in the kernel config.
-
-Here's a sample session:
-
-```
-(gdb) target remote :1234
-Remote debugging using :1234
-
-Program received signal SIGTRAP, Trace/breakpoint trap.
-0x000000000000fff0 in exception_stacks ()
-(gdb) hbreak start_kernel
-Hardware assisted breakpoint 1 at 0xffffffff829e2cb5: file init/main.c, line 780.
-(gdb) c
-Continuing.
-
-Breakpoint 1, start_kernel () at init/main.c:780
-780	{
-(gdb) n
-784		set_task_stack_end_magic(&init_task);
-(gdb) n
-785		smp_setup_processor_id();
-(gdb) n
-788		cgroup_init_early();
-
+```sh
+make image
+make boot
 ```
 
-## GDB Cheatsheet
+`make boot` creates the initramfs automatically when it does not already exist,
+so the short form is usually enough:
 
-```
-gdb ./vmlinux, file ./vmlinux
-gdb -tui, tui enable - enable text-user-interface mode
-c-x s - switch to SingleKey mode
-c-x 1 - same as "layout src"
-c-x 2 - same as "layout regs"
-c-x 0 - switch focus
-c - continue
-n - next
-i - step in
-disassemble _do_fork, disassemble 0xffffffff81064de0 - the location taken from System.map
-hbreak start_kernel, break _do_fork - set breakpoint
-set disassembly-flavor intel
-```
 
-## Troubleshooting
+## Using the Makefile from a kernel tree
 
-If you run into issues booting into the root device, ensure the following options are builtin:
+The utility Makefile is self-contained and does not require the rest of this
+repository at runtime. It can be copied or symlinked wherever it is convenient.
 
-```
-CONFIG_EXT4_FS=y
-CONFIG_IA32_EMULATION=y
-CONFIG_VIRTIO=y
-CONFIG_VIRTIO_RING=y
-CONFIG_VIRTIO_PCI=y
-CONFIG_VIRTIO_BALLOON=y
-CONFIG_VIRTIO_BLK=y
-CONFIG_VIRTIO_NET=y
+A Linux source tree already has a file named `Makefile`, so give this Makefile a
+different name when placing it inside the tree:
+
+Place or symlink it as `Makefile` in a parent directory whose kernel tree is
+named `mainline`, then run `make` from that parent directory.
+
+```sh
+cd /path/to/work-dir
+ln -s /path/to/kernel-utils/Makefile .
+make boot
 ```
 
-# License
+## Common workflows
 
-This project is distributed under the GPLv3 license.
+Create an initramfs without starting QEMU:
+
+```sh
+make image
+```
+
+Force the initramfs to be recreated after changing its package list, Debian
+suite, overlay, or kernel modules:
+
+```sh
+make rebuild
+```
+
+Choose a Debian suite and add guest packages:
+
+```sh
+make rebuild \
+    SUITE=testing \
+    INCLUDEPKGS=ksh,strace,iproute2
+```
+
+Merge local files into the initramfs. Paths inside the overlay correspond to
+paths in the guest root filesystem:
+
+```text
+overlay/
+|-- etc/
+|   `-- motd
+`-- root/
+    `-- test.sh
+```
+
+```sh
+make rebuild ROOTFS_OVERLAY=./overlay
+```
+
+Give QEMU more CPUs and memory:
+
+```sh
+make boot QEMU_CPUS=4 QEMU_MEMORY=4G
+```
+
+Use KVM acceleration on a compatible host:
+
+```sh
+make boot QEMU_CPU=host QEMU_EXTRA_ARGS=-enable-kvm
+```
+
+Pass additional arguments to the kernel:
+
+```sh
+make boot KERNEL_EXTRA_ARGS="ignore_loglevel initcall_debug"
+```
+
+Pass arbitrary devices or other options to QEMU:
+
+```sh
+make boot QEMU_EXTRA_ARGS="-nic user,model=virtio-net-pci"
+```
+
+This creates a QEMU user-mode network device, but the guest still needs the
+corresponding kernel driver and a userspace network configuration or DHCP
+client.
+
+Capture the serial console in a file:
+
+```sh
+make boot-log
+```
+
+The default log is `out/<architecture>/console.log`. Override it with
+`SERIAL_LOG=/path/to/log`.
+
+## Kernel debugging
+
+Build the kernel with debug information and retain the uncompressed `vmlinux`
+file. Start QEMU paused with its GDB server listening on localhost:
+
+```sh
+make debug
+```
+
+In another terminal, connect GDB:
+
+```sh
+make gdb 
+```
+
+The default port is 1234. A different port can be selected consistently for
+both commands:
+
+```sh
+make debug GDB_PORT=2345
+make gdb GDB_PORT=2345
+```
+
+Useful GDB commands include:
+
+```gdb
+hbreak start_kernel
+continue
+layout src
+layout regs
+```
+
+## Outputs and cleanup
+
+Artifacts are stored under `out/<architecture>/` by default. Change the base
+directory with `OUTPUT_ROOT`:
+
+```sh
+make image OUTPUT_ROOT=/tmp/kernel-utils
+```
+
+Remove artifacts for the current architecture or for all architectures:
+
+```sh
+make clean
+make distclean
+```
+
+Use `make print-config` to inspect all resolved paths and architecture-specific
+settings, and `make check` to validate the configured tools and kernel files.
+
+## Kernel configuration
+
+The initramfs mounts procfs, sysfs, devtmpfs, and debugfs, then starts an
+automatic root login on the architecture's serial console. The kernel must have
+the required filesystem, console, and QEMU device support built in or available
+through its installed modules.
+
+At minimum, check the relevant options for your architecture and QEMU machine,
+including initramfs support, devtmpfs, procfs, sysfs, a serial console, and the
+drivers for any QEMU devices you add. Kernel configuration remains the
+developer's responsibility because the correct choices depend on the kernel and
+the experiment being run.
+
+## License
+
+This project is distributed under the GPLv3 license. See `COPYING`.
