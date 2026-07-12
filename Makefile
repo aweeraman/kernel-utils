@@ -9,27 +9,41 @@ INCLUDEPKGS          ?= ksh,strace
 HOST_ARCH            := $(shell uname -m)
 
 ifeq ($(HOST_ARCH),aarch64)
-TARGET_ARCH           := arm64
+DEFAULT_TARGET_ARCH  := arm64
+else ifeq ($(HOST_ARCH),x86_64)
+DEFAULT_TARGET_ARCH  := amd64
+else
+$(error Unsupported host architecture: $(HOST_ARCH))
+endif
+
+TARGET_ARCH          ?= $(DEFAULT_TARGET_ARCH)
+
+ifeq ($(TARGET_ARCH),arm64)
 KERNEL_ARCH           := arm64
 DEBIAN_ARCH           := arm64
 QEMU_ARCH             := aarch64
-QEMU_PACKAGE          := qemu-system-arm
 QEMU_MACHINE          := virt
 CONSOLE               := ttyAMA0
 KERNEL_FILE           := arch/arm64/boot/Image
 KERNEL_ARGS           := console=$(CONSOLE) earlycon rdinit=/init
-else ifeq ($(HOST_ARCH),x86_64)
-TARGET_ARCH           := amd64
+else ifeq ($(TARGET_ARCH),amd64)
 KERNEL_ARCH           := x86
 DEBIAN_ARCH           := amd64
 QEMU_ARCH             := x86_64
-QEMU_PACKAGE          := qemu-system-x86
 QEMU_MACHINE          := q35
 CONSOLE               := ttyS0
 KERNEL_FILE           := arch/x86/boot/bzImage
 KERNEL_ARGS           := console=$(CONSOLE) earlyprintk=serial rdinit=/init
+else ifeq ($(TARGET_ARCH),riscv64)
+KERNEL_ARCH           := riscv
+DEBIAN_ARCH           := riscv64
+QEMU_ARCH             := riscv64
+QEMU_MACHINE          := virt
+CONSOLE               := ttyS0
+KERNEL_FILE           := arch/riscv/boot/Image
+KERNEL_ARGS           := console=$(CONSOLE) earlycon=sbi rdinit=/init
 else
-$(error Unsupported host architecture: $(HOST_ARCH))
+$(error Unsupported target architecture: $(TARGET_ARCH))
 endif
 
 QEMU                 ?= qemu-system-$(QEMU_ARCH)
@@ -39,7 +53,7 @@ QEMU_MEMORY          ?= 2G
 QEMU_EXTRA_ARGS      ?=
 QEMU_CONSOLE_ARGS    ?= -nographic
 GDB_PORT             ?= 1234
-GDB                  ?= gdb
+GDB                  ?= gdb-multiarch
 KERNEL_EXTRA_ARGS    ?=
 DEBUG_KERNEL_ARGS    ?= nokaslr panic=-1 oops=panic
 
@@ -78,15 +92,19 @@ endif
 HOST_DEPS := \
 	libarchive-tools \
 	mmdebstrap \
-	$(QEMU_PACKAGE) \
+	qemu-system-arm \
+	qemu-system-x86 \
+	qemu-system-riscv64 \
 	kmod \
-	gdb
+	gdb-multiarch \
+	arch-test \
+	qemu-user \
+	qemu-user-binfmt
 
 .PHONY: \
 		help print-config check check-image check-boot check-apt \
 		check-gdb image copy-modules boot boot-log debug gdb \
-		deps clean \
-		distclean rebuild
+		deps clean distclean rebuild
 
 define INIT
 #!/bin/sh
@@ -105,7 +123,7 @@ endef
 export INIT
 
 help:
-	@echo "Package and boot an already-built native Linux kernel with a Debian initramfs."
+	@echo "Package and boot an already-built Linux kernel with a Debian initramfs."
 	@echo ""
 	@echo "Usage: make [target] [VARIABLE=value ...]"
 	@echo ""
@@ -118,14 +136,15 @@ help:
 	@echo "  make rebuild        Recreate the initramfs from scratch"
 	@echo ""
 	@echo "Additional targets:"
-	@echo "  make deps           Install packaging, QEMU, and debug tools"
+	@echo "  make deps           Install packaging, debug, and all guest runtime tools"
 	@echo "  make check          Validate tools and configured paths"
 	@echo "  make print-config   Show the resolved configuration"
-	@echo "  make clean          Remove artifacts for the current architecture"
+	@echo "  make clean          Remove artifacts for the current target architecture"
 	@echo "  make distclean      Remove artifacts for all architectures"
 	@echo ""
 	@echo "Configuration variables:"
-	@echo "  KERNELSRC           Kernel source directory"
+	@echo "  TARGET_ARCH         Guest architecture: amd64, arm64, or riscv64"
+	@echo "  KERNELSRC           Prepared kernel build tree"
 	@echo "  SUITE               Debian suite (default: $(SUITE))"
 	@echo "  VARIANT             mmdebstrap variant (default: $(VARIANT))"
 	@echo "  MIRROR              Debian mirror"
@@ -145,6 +164,8 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo '  make image KERNELSRC=/path/to/linux SUITE=testing'
+	@echo '  make deps'
+	@echo '  make boot TARGET_ARCH=riscv64 KERNELSRC=/path/to/riscv64-build'
 	@echo '  make boot QEMU_CPU=max QEMU_CPUS=4 QEMU_MEMORY=4G'
 	@echo '  make boot KERNEL_EXTRA_ARGS="ignore_loglevel initcall_debug"'
 	@echo '  make boot QEMU_CPU=host QEMU_EXTRA_ARGS="-enable-kvm"'
@@ -190,7 +211,7 @@ check-image:
 		exit 1; \
 	}
 	@test -d "$(KERNELSRC)" || { \
-		echo "error: kernel source directory not found: $(KERNELSRC)"; \
+		echo "error: kernel build directory not found: $(KERNELSRC)"; \
 		echo "Set it with: make image KERNELSRC=/path/to/linux"; \
 		exit 1; \
 	}

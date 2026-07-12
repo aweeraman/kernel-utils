@@ -7,15 +7,17 @@ Simply drop-in the Makefile to the working directory and use it as part of
 your development workflow.
 
 Building, configuring, updating, and selecting the kernel are deliberately out
-of scope. Use your normal kernel development workflow, then point this Makefile
-at its build output.
+of scope. Use your normal kernel development workflow, then point `KERNELSRC`
+at its prepared build tree.
 
 ## Requirements
 
-The currently supported host architectures are x86-64 and AArch64.
+The supported host architectures are x86-64 and AArch64. Supported guest
+architectures are amd64, arm64, and riscv64. The guest defaults to the host's
+architecture and can be selected independently with `TARGET_ARCH`.
 
-On Debian and Ubuntu, install the required initramfs, QEMU, and debugging tools
-with:
+On Debian and Ubuntu, install the required initramfs, debugging, and runtime
+tools for all supported guest architectures with:
 
 ```sh
 make deps
@@ -27,8 +29,6 @@ First build a kernel using whatever source tree, configuration, compiler, and
 build process you prefer. The build must produce the bootable kernel image. If
 `modules.order` is present, the kernel modules are also installed in the
 initramfs; otherwise, the initramfs is created without modules.
-
-Then create an initramfs and boot it.
 
 The default kernel source directory is `./mainline`. Thus, a directory arranged
 like this needs no `KERNELSRC` argument:
@@ -56,6 +56,26 @@ make boot
 `make boot` creates the initramfs automatically when it does not already exist,
 so the short form is usually enough:
 
+To package and boot a pre-built RISC-V kernel on either an amd64 or arm64 Debian
+host, install the runtime dependencies and select the target when packaging or
+booting:
+
+```sh
+make deps
+make boot TARGET_ARCH=riscv64 KERNELSRC=/path/to/riscv64-build
+```
+
+`KERNELSRC` must point at the prepared kernel build tree containing
+`include/config/kernel.release` and the architecture's boot image. If
+`modules.order` is present, its already-built modules are installed too.
+`vmlinux` is only required for the `gdb` target. This harness only packages
+existing artifacts; it never compiles the kernel or modules.
+
+For a foreign guest, `mmdebstrap` uses QEMU user-mode emulation and Linux
+`binfmt_misc` while constructing the root filesystem. System-mode QEMU then
+boots the completed kernel and initramfs. Cross-architecture guests use software
+emulation; KVM acceleration and `QEMU_CPU=host` are only appropriate when the
+host and guest architectures match.
 
 ## Using the Makefile from a kernel tree
 
@@ -146,7 +166,7 @@ Capture the serial console in a file:
 make boot-log
 ```
 
-The default log is `out/<architecture>/console.log`. Override it with
+The default log is `out/<target-architecture>/console.log`. Override it with
 `SERIAL_LOG=/path/to/log`.
 
 ## Kernel debugging
@@ -183,8 +203,8 @@ layout regs
 
 ## Outputs and cleanup
 
-Artifacts are stored under `out/<architecture>/` by default. Change the base
-directory with `OUTPUT_ROOT`:
+Artifacts are stored under `out/<target-architecture>/` by default, independently
+of the host architecture. Change the base directory with `OUTPUT_ROOT`:
 
 ```sh
 make image OUTPUT_ROOT=/tmp/kernel-utils
