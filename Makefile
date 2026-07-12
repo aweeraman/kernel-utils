@@ -51,6 +51,14 @@ MODULES_ORDER        ?= $(KERNELSRC)/modules.order
 KERNEL_BUILD_INPUTS  := $(wildcard $(KERNELIMG) $(KERNEL_RELEASE) $(MODULES_ORDER))
 MAKEFILE_SELF        := $(lastword $(MAKEFILE_LIST))
 
+ifneq ($(wildcard $(MODULES_ORDER)),)
+HAVE_MODULES         := yes
+MODULES_COPY_ARG      = --customize-hook="copy-in '$(MODULES_DIR)/lib/modules' /lib"
+else
+HAVE_MODULES         := no
+MODULES_COPY_ARG      =
+endif
+
 OUTPUT_ROOT          ?= $(CURDIR)/out
 OUTPUT_DIR           ?= $(OUTPUT_ROOT)/$(TARGET_ARCH)
 MODULES_DIR          ?= $(OUTPUT_DIR)/modules
@@ -153,6 +161,7 @@ print-config:
 	@echo "Kernel source:        $(KERNELSRC)"
 	@echo "Kernel image:         $(KERNELIMG)"
 	@echo "Kernel symbols:       $(VMLINUX)"
+	@echo "Install modules:      $(HAVE_MODULES)"
 	@echo "Output root:          $(OUTPUT_ROOT)"
 	@echo "Output directory:     $(OUTPUT_DIR)"
 	@echo "Initramfs:            $(INITRAMFS)"
@@ -199,11 +208,6 @@ check-image:
 		echo "Build the kernel separately, then run 'make image'."; \
 		exit 1; \
 	}
-	@test -f "$(MODULES_ORDER)" || { \
-		echo "error: built kernel modules not found: $(MODULES_ORDER)"; \
-		echo "Build the kernel and modules separately, then run 'make image'."; \
-		exit 1; \
-	}
 	@if test -n "$(ROOTFS_OVERLAY)" && test ! -d "$(ROOTFS_OVERLAY)"; then \
 		echo "error: rootfs overlay directory not found: $(ROOTFS_OVERLAY)"; \
 		exit 1; \
@@ -234,11 +238,15 @@ $(OUTPUT_DIR):
 	mkdir -p "$@"
 
 copy-modules: | $(OUTPUT_DIR)
+ifeq ($(HAVE_MODULES),yes)
 	rm -rf "$(MODULES_DIR)"
 	$(MAKE) -C "$(KERNELSRC)" \
 		ARCH="$(KERNEL_ARCH)" \
 		INSTALL_MOD_PATH="$(MODULES_DIR)" \
 		modules_install
+else
+	@echo "No modules.order found; creating initramfs without kernel modules."
+endif
 
 image: $(INITRAMFS)
 
@@ -256,7 +264,7 @@ $(INITRAMFS): $(KERNEL_BUILD_INPUTS) $(MAKEFILE_SELF) | check-image $(OUTPUT_DIR
 		--customize-hook='printf "%s\n" "$$INIT" > "$$1/init"' \
 		--customize-hook='chmod 0755 "$$1/init"' \
 		--customize-hook='chroot "$$1" chsh -s $(GUEST_SHELL) root' \
-		--customize-hook="copy-in '$(MODULES_DIR)/lib/modules' /lib" \
+		$(MODULES_COPY_ARG) \
 		$(ROOTFS_OVERLAY_ARG) "$(SUITE)" "$(ROOTFS)" "$(MIRROR)"
 
 	bsdtar --format newc -cf "$@" @"$(ROOTFS)"

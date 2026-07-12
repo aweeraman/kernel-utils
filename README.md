@@ -24,8 +24,9 @@ make deps
 ## Quick start
 
 First build a kernel using whatever source tree, configuration, compiler, and
-build process you prefer. The build must produce the bootable kernel image and
-kernel modules.
+build process you prefer. The build must produce the bootable kernel image. If
+`modules.order` is present, the kernel modules are also installed in the
+initramfs; otherwise, the initramfs is created without modules.
 
 Then create an initramfs and boot it.
 
